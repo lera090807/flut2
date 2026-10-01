@@ -212,6 +212,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Всего записей: 1'), findsOneWidget);
     await menu('Восстановить');
+    expect(find.text('Ничего не найдено'), findsOneWidget);
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
     expect(find.text('COS-0001'), findsOneWidget);
     await menu('Удалить навсегда');
     await tester.tap(find.widgetWithText(FilledButton, 'Удалить'));
@@ -229,9 +232,9 @@ void main() {
     expect(find.text('Всего записей: 10'), findsOneWidget);
     await tester.tap(find.text('Все бренды'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Lumière').last);
+    await tester.tap(find.text('Bioderma').last);
     await tester.pumpAndSettle();
-    expect(find.text('Всего записей: 2'), findsOneWidget);
+    expect(find.text('Всего записей: 3'), findsOneWidget);
     await tester.enterText(
       find.widgetWithText(TextField, 'Цена от, ₽'),
       '1800',

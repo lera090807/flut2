@@ -28,7 +28,11 @@ abstract class InMemoryRepository<T extends CatalogEntity>
     }
     final rows = _rows
         .where(
-          (e) => (query.includeDeleted || !e.isDeleted) && matches(e, query),
+          (e) =>
+              (query.onlyDeleted
+                  ? e.isDeleted
+                  : (query.includeDeleted || !e.isDeleted)) &&
+              matches(e, query),
         )
         .toList();
     rows.sort((a, b) {

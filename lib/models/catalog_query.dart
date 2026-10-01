@@ -3,6 +3,7 @@ const _unset = Object();
 /// Адрес браузера является источником условий отбора.
 class CatalogQuery {
   final String search;
+  final String filter;
   final int? categoryId;
   final int? brandId;
   final int? minPrice;
@@ -12,8 +13,10 @@ class CatalogQuery {
   final int page;
   final int size;
   final bool includeDeleted;
+  final bool onlyDeleted;
   const CatalogQuery({
     this.search = '',
+    this.filter = '',
     this.categoryId,
     this.brandId,
     this.minPrice,
@@ -23,9 +26,11 @@ class CatalogQuery {
     this.page = 1,
     this.size = 10,
     this.includeDeleted = false,
+    this.onlyDeleted = false,
   });
   CatalogQuery copyWith({
     String? search,
+    String? filter,
     Object? categoryId = _unset,
     Object? brandId = _unset,
     Object? minPrice = _unset,
@@ -35,8 +40,10 @@ class CatalogQuery {
     int? page,
     int? size,
     bool? includeDeleted,
+    bool? onlyDeleted,
   }) => CatalogQuery(
     search: search ?? this.search,
+    filter: filter ?? this.filter,
     categoryId: identical(categoryId, _unset)
         ? this.categoryId
         : categoryId as int?,
@@ -48,8 +55,9 @@ class CatalogQuery {
     page: page ?? 1,
     size: size ?? this.size,
     includeDeleted: includeDeleted ?? this.includeDeleted,
+    onlyDeleted: onlyDeleted ?? this.onlyDeleted,
   );
-  factory CatalogQuery.fromUri(Uri uri, {bool brands = false}) {
+  factory CatalogQuery.fromUri(Uri uri, {bool brands = false, String? entity}) {
     final p = uri.queryParameters;
     int? number(String key) {
       final value = int.tryParse(p[key] ?? '');
@@ -57,13 +65,19 @@ class CatalogQuery {
     }
 
     final sort = (p['sort'] ?? 'name,asc').split(',');
-    final fields = brands
-        ? ['name', 'country', 'foundedYear']
-        : ['name', 'price', 'stock'];
+    final kind = entity ?? (brands ? 'brands' : 'products');
+    final fields = switch (kind) {
+      'brands' => ['name', 'country', 'foundedYear'],
+      'categories' => ['name', 'id', 'productCount'],
+      'suppliers' => ['name', 'city', 'email'],
+      'customers' => ['name', 'email', 'points'],
+      _ => ['name', 'price', 'stock'],
+    };
     final page = number('page') ?? 1;
     final size = number('size') ?? 10;
     return CatalogQuery(
       search: p['search'] ?? '',
+      filter: p['filter'] ?? '',
       categoryId: brands ? null : number('categoryId'),
       brandId: brands ? null : number('brandId'),
       minPrice: brands ? null : number('minPrice'),
@@ -72,13 +86,14 @@ class CatalogQuery {
       ascending: sort.length < 2 || sort[1] != 'desc',
       page: page < 1 ? 1 : page,
       size: [10, 25, 50].contains(size) ? size : 10,
-      includeDeleted: p['includeDeleted'] == 'true',
+      onlyDeleted: p['onlyDeleted'] == 'true' || p['includeDeleted'] == 'true',
     );
   }
   String location(String path) => Uri(
     path: path,
     queryParameters: {
       if (search.isNotEmpty) 'search': search,
+      if (filter.isNotEmpty) 'filter': filter,
       if (categoryId != null) 'categoryId': '$categoryId',
       if (brandId != null) 'brandId': '$brandId',
       if (minPrice != null) 'minPrice': '$minPrice',
@@ -87,6 +102,7 @@ class CatalogQuery {
       'page': '$page',
       'size': '$size',
       if (includeDeleted) 'includeDeleted': 'true',
+      if (onlyDeleted) 'onlyDeleted': 'true',
     },
   ).toString();
 }

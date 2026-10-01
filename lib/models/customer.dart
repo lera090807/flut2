@@ -1,58 +1,58 @@
 import 'catalog_entity.dart';
 import 'json_values.dart';
+import 'loyalty_card.dart';
 
-class Brand implements CatalogEntity {
+class Customer implements CatalogEntity {
   @override
   final int id;
   @override
   final String name;
-  final String country;
-  final int foundedYear;
-  final String description;
+  final String email;
+  final String phone;
+  final LoyaltyCard card;
   @override
   final DateTime? deletedAt;
-  const Brand({
+  const Customer({
     required this.id,
     required this.name,
-    required this.country,
-    required this.foundedYear,
-    required this.description,
+    required this.email,
+    required this.phone,
+    required this.card,
     this.deletedAt,
   });
   @override
   bool get isDeleted => deletedAt != null;
-  Brand copyWith({
+  Customer copyWith({
     int? id,
     String? name,
-    String? country,
-    int? foundedYear,
-    String? description,
+    String? email,
+    String? phone,
+    LoyaltyCard? card,
     DateTime? deletedAt,
     bool clearDeletedAt = false,
-  }) => Brand(
+  }) => Customer(
     id: id ?? this.id,
     name: name ?? this.name,
-    country: country ?? this.country,
-    foundedYear: foundedYear ?? this.foundedYear,
-    description: description ?? this.description,
+    email: email ?? this.email,
+    phone: phone ?? this.phone,
+    card: card ?? this.card,
     deletedAt: clearDeletedAt ? null : deletedAt ?? this.deletedAt,
   );
-
   @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
-    'country': country,
-    'foundedYear': foundedYear,
-    'description': description,
+    'email': email,
+    'phone': phone,
+    'card': card.toJson(),
     'deletedAt': deletedAt?.toIso8601String(),
   };
-  factory Brand.fromJson(Map<String, dynamic> j) => Brand(
+  factory Customer.fromJson(Map<String, dynamic> j) => Customer(
     id: jsonInt(j['id']),
     name: jsonString(j['name']),
-    country: jsonString(j['country']),
-    foundedYear: jsonInt(j['foundedYear']),
-    description: jsonString(j['description']),
+    email: jsonString(j['email']),
+    phone: jsonString(j['phone']),
+    card: LoyaltyCard.fromJson(jsonMap(j['card'])),
     deletedAt: jsonDate(j['deletedAt']),
   );
 }

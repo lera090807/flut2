@@ -6,6 +6,12 @@ import '../core/theme.dart';
 import '../models/catalog_entity.dart';
 import '../models/product.dart';
 import '../models/brand.dart';
+import '../models/category.dart';
+import '../models/supplier.dart';
+import '../models/customer.dart';
+
+import 'package:intl/intl.dart';
+
 import '../state/detail_notifier.dart';
 import '../state/catalog_reference.dart';
 import '../state/load_state.dart';
@@ -61,12 +67,13 @@ class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
   }
 
   Widget _card(BuildContext context, T item) {
-    final ref = context.read<CatalogReference>();
+    final ref = context.watch<CatalogReference>();
     final fields = switch (item) {
       Product p => <String, String>{
         'Артикул': p.sku,
         'Бренд': ref.brandName(p.brandId),
-        'Категория': ref.categoryName(p.categoryId),
+        'Категории': p.categoryIds.map(ref.categoryName).join(', '),
+        'Поставщик': ref.supplierName(p.supplierId),
         'Цена': money(p.priceKopecks),
         'Остаток': '${p.stock} шт.',
         'Объём / масса': p.volume,
@@ -76,6 +83,28 @@ class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
         'Страна': b.country,
         'Год основания': '${b.foundedYear}',
         'Описание': b.description,
+      },
+      Category c => <String, String>{
+        'Описание': c.description,
+        'Товаров в категории': '${ref.productCount(c.id)}',
+      },
+      Supplier s => <String, String>{
+        'Город': s.city,
+        'Почта': s.email,
+        'Телефон': s.phone,
+        'Поставляемые бренды': s.brandIds.map(ref.brandName).join(', '),
+      },
+      Customer c => <String, String>{
+        'Почта': c.email,
+        'Телефон': c.phone,
+        'Карта лояльности': c.card.number,
+        'Дата выдачи': c.card.issuedAt == null
+            ? '—'
+            : DateFormat('dd.MM.yyyy').format(c.card.issuedAt!),
+        'Действует до': c.card.expiresAt == null
+            ? '—'
+            : DateFormat('dd.MM.yyyy').format(c.card.expiresAt!),
+        'Бонусные баллы': '${c.card.points}',
       },
       _ => <String, String>{},
     };
@@ -99,6 +128,17 @@ class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
                   label: Text('Удалено · восстановление доступно в списке'),
                 ),
               ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => context.go(
+                Uri(
+                  path: '${GoRouterState.of(context).uri.path}/edit',
+                  queryParameters: {'from': back},
+                ).toString(),
+              ),
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Редактировать'),
+            ),
             const SizedBox(height: 24),
             for (final entry in fields.entries)
               Padding(
@@ -120,6 +160,16 @@ class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            if (item case Category c)
+              TextButton(
+                onPressed: () => context.go('/products?categoryId=${c.id}'),
+                child: const Text('Товары этой категории'),
+              ),
+            if (item case Brand b)
+              TextButton(
+                onPressed: () => context.go('/products?brandId=${b.id}'),
+                child: const Text('Товары этого бренда'),
               ),
             if (item case Product p)
               TextButton(

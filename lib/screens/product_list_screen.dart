@@ -13,7 +13,7 @@ class ProductListScreen extends StatelessWidget {
   const ProductListScreen({super.key, required this.query});
   @override
   Widget build(BuildContext context) {
-    final ref = context.read<CatalogReference>();
+    final ref = context.watch<CatalogReference>();
     return CatalogScreen<Product>(
       query: query,
       path: '/products',
@@ -22,7 +22,7 @@ class ProductListScreen extends StatelessWidget {
       subtitle: 'Уход, макияж и маленькие ежедневные ритуалы.',
       searchHint: 'Название или артикул',
       summary: (p) =>
-          '${ref.brandName(p.brandId)} · ${ref.categoryName(p.categoryId)}\n${money(p.priceKopecks)} · ${p.volume} · Остаток: ${p.stock} шт.',
+          '${ref.brandName(p.brandId)} · ${p.categoryIds.map(ref.categoryName).join(', ')}\n${money(p.priceKopecks)} · ${p.volume} · Остаток: ${p.stock} шт.',
       columns: [
         TableColumnSpec(
           label: 'Товар',
@@ -59,7 +59,7 @@ class ProductListScreen extends StatelessWidget {
         ),
         TableColumnSpec(
           label: 'Категория',
-          build: (p) => Text(ref.categoryName(p.categoryId)),
+          build: (p) => Text(p.categoryIds.map(ref.categoryName).join(', ')),
         ),
         TableColumnSpec(
           label: 'Цена',

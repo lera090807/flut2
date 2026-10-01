@@ -3,4 +3,5 @@ abstract interface class CatalogEntity {
   String get name;
   DateTime? get deletedAt;
   bool get isDeleted;
+  Map<String, dynamic> toJson();
 }

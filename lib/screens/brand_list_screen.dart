@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../state/catalog_reference.dart';
 
 import '../models/brand.dart';
 import '../models/catalog_query.dart';
@@ -13,6 +16,13 @@ class BrandListScreen extends StatelessWidget {
     query: query,
     path: '/brands',
     products: false,
+    filterLabel: 'Страна',
+    filterOptions: {
+      for (final b in context.watch<CatalogReference>().brands.where(
+        (b) => !b.isDeleted,
+      ))
+        b.country: b.country,
+    },
     title: 'Бренды',
     subtitle: 'Знакомьтесь с марками нашей коллекции.',
     searchHint: 'Название бренда или страна',

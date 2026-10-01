@@ -97,14 +97,14 @@ void main() {
             .items
             .single
             .name,
-        'Seoul Bloom',
+        'COSRX',
       );
       expect(
         (await repo.find(const CatalogQuery(sortField: 'foundedYear')))
             .items
             .first
             .id,
-        1,
+        2,
       );
       await repo.softDelete(1);
       expect((await repo.find(const CatalogQuery())).total, 7);
@@ -125,7 +125,7 @@ void main() {
         ascending: false,
         page: 3,
         size: 25,
-        includeDeleted: true,
+        onlyDeleted: true,
       );
       final restored = CatalogQuery.fromUri(
         Uri.parse(query.location('/products')),

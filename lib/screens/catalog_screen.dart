@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/theme.dart';
+import '../core/validation_exception.dart';
 import '../models/catalog_entity.dart';
 import '../models/catalog_query.dart';
 import '../models/page_result.dart';
@@ -24,6 +25,8 @@ class CatalogScreen<T extends CatalogEntity> extends StatefulWidget {
   final String subtitle;
   final String searchHint;
   final bool products;
+  final String? filterLabel;
+  final Map<String, String> filterOptions;
   final List<TableColumnSpec<T>> columns;
   final String Function(T) summary;
   const CatalogScreen({
@@ -34,6 +37,8 @@ class CatalogScreen<T extends CatalogEntity> extends StatefulWidget {
     required this.subtitle,
     required this.searchHint,
     required this.products,
+    this.filterLabel,
+    this.filterOptions = const {},
     required this.columns,
     required this.summary,
   });
@@ -136,12 +141,25 @@ class _CatalogScreenState<T extends CatalogEntity>
     try {
       final count = await notifier.deleteSelected();
       _snack('Удалено записей: $count');
+    } on RelatedRecordsException catch (e) {
+      _snack(e.toString());
+    } on StorageException catch (e) {
+      _snack(e.message);
     } catch (_) {
       _snack('Не удалось удалить записи. Попробуйте ещё раз.');
     }
   }
 
   Future<void> _action(T item, String action) async {
+    if (action == 'edit') {
+      context.go(
+        Uri(
+          path: '${widget.path}/${item.id}/edit',
+          queryParameters: {'from': widget.query.location(widget.path)},
+        ).toString(),
+      );
+      return;
+    }
     if (action != 'restore') {
       final confirmed = await confirmDelete(
         context,
@@ -155,6 +173,10 @@ class _CatalogScreenState<T extends CatalogEntity>
     try {
       await notifier.mutate(item.id, action);
       _snack(action == 'restore' ? 'Запись восстановлена' : 'Запись удалена');
+    } on RelatedRecordsException catch (e) {
+      _snack(e.toString());
+    } on StorageException catch (e) {
+      _snack(e.message);
     } catch (_) {
       _snack('Не удалось выполнить операцию. Попробуйте ещё раз.');
     }
@@ -176,6 +198,7 @@ class _CatalogScreenState<T extends CatalogEntity>
       enabled: !notifier.busy,
       onSelected: (action) => _action(item, action),
       itemBuilder: (_) => [
+        const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
         if (item.isDeleted)
           const PopupMenuItem(value: 'restore', child: Text('Восстановить'))
         else
@@ -185,7 +208,7 @@ class _CatalogScreenState<T extends CatalogEntity>
     ),
   ];
   Widget _filters(bool compact) {
-    final reference = context.read<CatalogReference>();
+    final reference = context.watch<CatalogReference>();
     final q = widget.query;
     return Card(
       margin: EdgeInsets.zero,
@@ -216,6 +239,30 @@ class _CatalogScreenState<T extends CatalogEntity>
               },
             ),
             const SizedBox(height: 8),
+            if (widget.filterLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('filter-${q.filter}'),
+                  initialValue: widget.filterOptions.containsKey(q.filter)
+                      ? q.filter
+                      : '',
+                  isExpanded: true,
+                  decoration: InputDecoration(labelText: widget.filterLabel),
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text('Все значения'),
+                    ),
+                    for (final option in widget.filterOptions.entries)
+                      DropdownMenuItem(
+                        value: option.key,
+                        child: Text(option.value),
+                      ),
+                  ],
+                  onChanged: (v) => _navigate(q.copyWith(filter: v ?? '')),
+                ),
+              ),
             if (widget.products)
               ExpansionTile(
                 key: ValueKey('filters-$compact'),
@@ -239,7 +286,7 @@ class _CatalogScreenState<T extends CatalogEntity>
                             key: ValueKey('category-${q.categoryId}'),
                             initialValue:
                                 reference.categories.any(
-                                  (c) => c.id == q.categoryId,
+                                  (c) => !c.isDeleted && c.id == q.categoryId,
                                 )
                                 ? q.categoryId
                                 : null,
@@ -252,7 +299,9 @@ class _CatalogScreenState<T extends CatalogEntity>
                                 value: null,
                                 child: Text('Все категории'),
                               ),
-                              for (final c in reference.categories)
+                              for (final c in reference.categories.where(
+                                (e) => !e.isDeleted,
+                              ))
                                 DropdownMenuItem(
                                   value: c.id,
                                   child: Text(c.name),
@@ -267,7 +316,9 @@ class _CatalogScreenState<T extends CatalogEntity>
                           child: DropdownButtonFormField<int>(
                             key: ValueKey('brand-${q.brandId}'),
                             initialValue:
-                                reference.brands.any((b) => b.id == q.brandId)
+                                reference.brands.any(
+                                  (b) => !b.isDeleted && b.id == q.brandId,
+                                )
                                 ? q.brandId
                                 : null,
                             isExpanded: true,
@@ -279,7 +330,9 @@ class _CatalogScreenState<T extends CatalogEntity>
                                 value: null,
                                 child: Text('Все бренды'),
                               ),
-                              for (final b in reference.brands)
+                              for (final b in reference.brands.where(
+                                (e) => !e.isDeleted,
+                              ))
                                 DropdownMenuItem(
                                   value: b.id,
                                   child: Text(b.name),
@@ -345,11 +398,12 @@ class _CatalogScreenState<T extends CatalogEntity>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Switch(
-                      value: q.includeDeleted,
-                      onChanged: (v) =>
-                          _navigate(q.copyWith(includeDeleted: v)),
+                      value: q.onlyDeleted,
+                      onChanged: (v) => _navigate(
+                        q.copyWith(onlyDeleted: v, includeDeleted: false),
+                      ),
                     ),
-                    const Flexible(child: Text('Показать удалённые')),
+                    const Flexible(child: Text('Только удалённые')),
                   ],
                 ),
                 TextButton.icon(
@@ -553,7 +607,7 @@ class _CatalogScreenState<T extends CatalogEntity>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'КАТАЛОГ / ${widget.products ? 'ТОВАРЫ' : 'БРЕНДЫ'}',
+              'КАТАЛОГ / ${widget.title.toUpperCase()}',
               style: const TextStyle(
                 fontSize: 11,
                 letterSpacing: 2,
@@ -571,6 +625,18 @@ class _CatalogScreenState<T extends CatalogEntity>
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                ),
+                IconButton(
+                  tooltip: 'Создать запись',
+                  onPressed: () => context.go(
+                    Uri(
+                      path: '${widget.path}/new',
+                      queryParameters: {
+                        'from': widget.query.location(widget.path),
+                      },
+                    ).toString(),
+                  ),
+                  icon: const Icon(Icons.add_circle_outline),
                 ),
                 PopupMenuButton<String>(
                   tooltip: 'Проверка состояний',

@@ -13,7 +13,6 @@ class TableColumnSpec<T> {
   });
 }
 
-/// Общая таблица для товаров и брендов: выделение, сортировка, две оси прокрутки.
 class EntityTable<T> extends StatefulWidget {
   final List<TableColumnSpec<T>> columns;
   final List<T> items;

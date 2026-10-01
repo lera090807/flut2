@@ -16,7 +16,7 @@ class InMemoryProductRepository extends InMemoryRepository<Product>
     final search = q.search.trim().toLowerCase();
     return (p.name.toLowerCase().contains(search) ||
             p.sku.toLowerCase().contains(search)) &&
-        (q.categoryId == null || p.categoryId == q.categoryId) &&
+        (q.categoryId == null || p.categoryIds.contains(q.categoryId)) &&
         (q.brandId == null || p.brandId == q.brandId) &&
         (q.minPrice == null || p.priceKopecks >= q.minPrice! * 100) &&
         (q.maxPrice == null || p.priceKopecks <= q.maxPrice! * 100);
