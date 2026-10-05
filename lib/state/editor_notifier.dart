@@ -6,6 +6,7 @@ import '../repositories/catalog_repository.dart';
 import '../core/validation_exception.dart';
 import 'catalog_reference.dart';
 import 'load_state.dart';
+import '../core/api_exceptions.dart';
 
 class EditorNotifier extends ChangeNotifier {
   final EntityKind kind;
@@ -59,6 +60,8 @@ class EditorNotifier extends ChangeNotifier {
       return saved;
     } on ValidationException catch (e) {
       errors = e.errors;
+    } on ApiException catch (e) {
+      saveError = e.message;
     } on StorageException catch (e) {
       saveError = e.message;
     } catch (_) {

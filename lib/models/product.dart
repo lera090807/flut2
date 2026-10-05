@@ -81,10 +81,22 @@ class Product implements CatalogEntity {
     id: jsonInt(j['id']),
     name: jsonString(j['name']),
     sku: jsonString(j['sku']),
-    brandId: jsonInt(j['brandId']),
-    supplierId: jsonInt(j['supplierId'], 1),
+    brandId: jsonInt(
+      j['brandId'] ?? (j['brand'] is Map ? j['brand']['id'] : null),
+    ),
+    supplierId: jsonInt(
+      j['supplierId'] ?? (j['supplier'] is Map ? j['supplier']['id'] : null),
+      1,
+    ),
     categoryIds: j['categoryIds'] is List
         ? jsonIds(j['categoryIds'])
+        : j['categories'] is List
+        ? jsonIds(
+            (j['categories'] as List)
+                .whereType<Map>()
+                .map((e) => e['id'])
+                .toList(),
+          )
         : [if (jsonInt(j['categoryId']) > 0) jsonInt(j['categoryId'])],
     priceKopecks: jsonInt(j['priceKopecks']),
     stock: jsonInt(j['stock']),

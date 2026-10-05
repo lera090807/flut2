@@ -1,0 +1,762 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Увлажняющий крем для лица",
+      "sku": "COS-0001",
+      "brandId": 1,
+      "supplierId": 1,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 189000,
+      "stock": 24,
+      "volume": "50 мл",
+      "description": "Лёгкая текстура для ежедневного ухода за кожей.",
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Сыворотка с гиалуроновой кислотой",
+      "sku": "COS-0002",
+      "brandId": 3,
+      "supplierId": 3,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 159000,
+      "stock": 18,
+      "volume": "30 мл",
+      "description": "Увлажняющая сыворотка для утреннего и вечернего ухода.",
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Очищающая пенка",
+      "sku": "COS-0003",
+      "brandId": 7,
+      "supplierId": 1,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 89000,
+      "stock": 32,
+      "volume": "150 мл",
+      "description": "Нежная пенка для ежедневного очищения лица.",
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Тоник с розовой водой",
+      "sku": "COS-0004",
+      "brandId": 2,
+      "supplierId": 2,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 65000,
+      "stock": 40,
+      "volume": "200 мл",
+      "description": "Освежающий тоник с мягким цветочным ароматом.",
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Питательный ночной крем",
+      "sku": "COS-0005",
+      "brandId": 5,
+      "supplierId": 2,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 219000,
+      "stock": 12,
+      "volume": "50 мл",
+      "description": "Насыщенная текстура для вечернего ухода.",
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "Тканевая маска с алоэ",
+      "sku": "COS-0006",
+      "brandId": 2,
+      "supplierId": 2,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 19000,
+      "stock": 65,
+      "volume": "25 мл",
+      "description": "Одноразовая маска для увлажняющего ухода.",
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "Мицеллярная вода Sensibio H2O",
+      "sku": "COS-0007",
+      "brandId": 1,
+      "supplierId": 1,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 72000,
+      "stock": 28,
+      "volume": "250 мл",
+      "description": "Средство для снятия повседневного макияжа.",
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "Крем для кожи вокруг глаз",
+      "sku": "COS-0008",
+      "brandId": 1,
+      "supplierId": 1,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 169000,
+      "stock": 15,
+      "volume": "15 мл",
+      "description": "Лёгкий крем для деликатной зоны вокруг глаз.",
+      "deletedAt": null
+    },
+    {
+      "id": 9,
+      "name": "Матовая помада «Пыльная роза»",
+      "sku": "COS-0009",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 99000,
+      "stock": 21,
+      "volume": "4 г",
+      "description": "Приглушённый розовый оттенок с матовым финишем.",
+      "deletedAt": null
+    },
+    {
+      "id": 10,
+      "name": "Тушь для ресниц",
+      "sku": "COS-0010",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 119000,
+      "stock": 17,
+      "volume": "10 мл",
+      "description": "Классическая чёрная тушь с удобной щёточкой.",
+      "deletedAt": null
+    },
+    {
+      "id": 11,
+      "name": "Тональный флюид",
+      "sku": "COS-0011",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 249000,
+      "stock": 8,
+      "volume": "30 мл",
+      "description": "Лёгкое покрытие с естественным финишем.",
+      "deletedAt": null
+    },
+    {
+      "id": 12,
+      "name": "Кремовые румяна «Персик»",
+      "sku": "COS-0012",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 85000,
+      "stock": 25,
+      "volume": "6 г",
+      "description": "Персиковый оттенок с кремовой текстурой.",
+      "deletedAt": null
+    },
+    {
+      "id": 13,
+      "name": "Прозрачный гель для бровей",
+      "sku": "COS-0013",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 59000,
+      "stock": 34,
+      "volume": "7 мл",
+      "description": "Прозрачный гель для укладки бровей.",
+      "deletedAt": null
+    },
+    {
+      "id": 14,
+      "name": "Блеск для губ",
+      "sku": "COS-0014",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 69000,
+      "stock": 0,
+      "volume": "5 мл",
+      "description": "Полупрозрачный блеск с сияющим финишем.",
+      "deletedAt": null
+    },
+    {
+      "id": 15,
+      "name": "Гель для душа «Вербена»",
+      "sku": "COS-0015",
+      "brandId": 5,
+      "supplierId": 2,
+      "categoryIds": [
+        3
+      ],
+      "priceKopecks": 49000,
+      "stock": 45,
+      "volume": "300 мл",
+      "description": "Мягкий гель с освежающим травяным ароматом.",
+      "deletedAt": null
+    },
+    {
+      "id": 16,
+      "name": "Крем для рук",
+      "sku": "COS-0016",
+      "brandId": 5,
+      "supplierId": 2,
+      "categoryIds": [
+        3
+      ],
+      "priceKopecks": 39000,
+      "stock": 52,
+      "volume": "75 мл",
+      "description": "Компактный крем для повседневного ухода.",
+      "deletedAt": null
+    },
+    {
+      "id": 17,
+      "name": "Масло для душа Atoderm",
+      "sku": "COS-0017",
+      "brandId": 1,
+      "supplierId": 1,
+      "categoryIds": [
+        3
+      ],
+      "priceKopecks": 179000,
+      "stock": 14,
+      "volume": "100 мл",
+      "description": "Очищающее масло для ухода за кожей тела.",
+      "deletedAt": null
+    },
+    {
+      "id": 18,
+      "name": "Скраб для тела",
+      "sku": "COS-0018",
+      "brandId": 2,
+      "supplierId": 2,
+      "categoryIds": [
+        3
+      ],
+      "priceKopecks": 79000,
+      "stock": 19,
+      "volume": "250 г",
+      "description": "Скраб с сахарными частицами и масляной основой.",
+      "deletedAt": null
+    },
+    {
+      "id": 19,
+      "name": "Лосьон для тела",
+      "sku": "COS-0019",
+      "brandId": 7,
+      "supplierId": 1,
+      "categoryIds": [
+        3
+      ],
+      "priceKopecks": 95000,
+      "stock": 23,
+      "volume": "250 мл",
+      "description": "Лёгкий лосьон с нейтральным ароматом.",
+      "deletedAt": null
+    },
+    {
+      "id": 20,
+      "name": "Увлажняющий шампунь",
+      "sku": "COS-0020",
+      "brandId": 6,
+      "supplierId": 2,
+      "categoryIds": [
+        4
+      ],
+      "priceKopecks": 109000,
+      "stock": 30,
+      "volume": "300 мл",
+      "description": "Шампунь для регулярного ухода за волосами.",
+      "deletedAt": null
+    },
+    {
+      "id": 21,
+      "name": "Восстанавливающая маска для волос",
+      "sku": "COS-0021",
+      "brandId": 6,
+      "supplierId": 2,
+      "categoryIds": [
+        4
+      ],
+      "priceKopecks": 139000,
+      "stock": 16,
+      "volume": "200 мл",
+      "description": "Густая маска для ухода по длине волос.",
+      "deletedAt": null
+    },
+    {
+      "id": 22,
+      "name": "Кондиционер для волос",
+      "sku": "COS-0022",
+      "brandId": 2,
+      "supplierId": 2,
+      "categoryIds": [
+        4
+      ],
+      "priceKopecks": 69000,
+      "stock": 27,
+      "volume": "250 мл",
+      "description": "Кондиционер для мягкости и лёгкого расчёсывания.",
+      "deletedAt": null
+    },
+    {
+      "id": 23,
+      "name": "Солнцезащитный крем SPF 50",
+      "sku": "COS-0023",
+      "brandId": 8,
+      "supplierId": 1,
+      "categoryIds": [
+        5
+      ],
+      "priceKopecks": 149000,
+      "stock": 22,
+      "volume": "50 мл",
+      "description": "Демонстрационный товар из категории защиты от солнца.",
+      "deletedAt": null
+    },
+    {
+      "id": 24,
+      "name": "Солнцезащитный флюид SPF 30",
+      "sku": "COS-0024",
+      "brandId": 8,
+      "supplierId": 1,
+      "categoryIds": [
+        5
+      ],
+      "priceKopecks": 129000,
+      "stock": 11,
+      "volume": "50 мл",
+      "description": "Лёгкая текстура для ежедневного ухода.",
+      "deletedAt": null
+    },
+    {
+      "id": 25,
+      "name": "Бальзам для губ SPF 15",
+      "sku": "COS-0025",
+      "brandId": 5,
+      "supplierId": 2,
+      "categoryIds": [
+        5
+      ],
+      "priceKopecks": 45000,
+      "stock": 38,
+      "volume": "4 г",
+      "description": "Компактный бальзам для ухода за губами.",
+      "deletedAt": null
+    },
+    {
+      "id": 26,
+      "name": "Гель для умывания Low pH",
+      "sku": "COS-0026",
+      "brandId": 3,
+      "supplierId": 3,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 125000,
+      "stock": 13,
+      "volume": "150 мл",
+      "description": "Гель для ежедневного очищения лица.",
+      "deletedAt": null
+    },
+    {
+      "id": 27,
+      "name": "Палетка теней «Нюд»",
+      "sku": "COS-0027",
+      "brandId": 4,
+      "supplierId": 2,
+      "categoryIds": [
+        2
+      ],
+      "priceKopecks": 189000,
+      "stock": 9,
+      "volume": "12 г",
+      "description": "Шесть нейтральных оттенков для повседневного макияжа.",
+      "deletedAt": null
+    },
+    {
+      "id": 28,
+      "name": "Несмываемый крем для волос",
+      "sku": "COS-0028",
+      "brandId": 6,
+      "supplierId": 2,
+      "categoryIds": [
+        4
+      ],
+      "priceKopecks": 119000,
+      "stock": 20,
+      "volume": "150 мл",
+      "description": "Завершающий этап ухода за длиной волос.",
+      "deletedAt": null
+    },
+    {
+      "id": 29,
+      "name": "Бальзам для тела",
+      "sku": "COS-0029",
+      "brandId": 5,
+      "supplierId": 2,
+      "categoryIds": [
+        3
+      ],
+      "priceKopecks": 159000,
+      "stock": 7,
+      "volume": "200 мл",
+      "description": "Плотный бальзам с мягким ненавязчивым ароматом.",
+      "deletedAt": null
+    },
+    {
+      "id": 30,
+      "name": "Гидрофильное масло",
+      "sku": "COS-0030",
+      "brandId": 3,
+      "supplierId": 3,
+      "categoryIds": [
+        1
+      ],
+      "priceKopecks": 145000,
+      "stock": 26,
+      "volume": "150 мл",
+      "description": "Масло для первого этапа вечернего очищения.",
+      "deletedAt": null
+    }
+  ],
+  "brands": [
+    {
+      "id": 1,
+      "name": "Bioderma",
+      "country": "Франция",
+      "foundedYear": 1977,
+      "description": "Дерматологический уход за лицом и телом. Линейки Sensibio, Hydrabio и Atoderm.",
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Garnier",
+      "country": "Франция",
+      "foundedYear": 1904,
+      "description": "Средства для ухода за кожей и волосами, мицеллярная вода и маски.",
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "COSRX",
+      "country": "Южная Корея",
+      "foundedYear": 2013,
+      "description": "Корейский бренд ухода за кожей: очищение, сыворотки и увлажнение.",
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Maybelline New York",
+      "country": "США",
+      "foundedYear": 1915,
+      "description": "Декоративная косметика: тушь, тональные средства, помады и тени.",
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "NIVEA",
+      "country": "Германия",
+      "foundedYear": 1911,
+      "description": "Повседневный уход за лицом, телом и руками.",
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "L’Oréal Paris",
+      "country": "Франция",
+      "foundedYear": 1909,
+      "description": "Косметика для макияжа, ухода за кожей и волосами.",
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "CeraVe",
+      "country": "США",
+      "foundedYear": 2005,
+      "description": "Очищающие и увлажняющие средства для лица и тела.",
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "La Roche-Posay",
+      "country": "Франция",
+      "foundedYear": 1975,
+      "description": "Дерматологическая косметика: Toleriane, Lipikar и Anthelios.",
+      "deletedAt": null
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Уход за лицом",
+      "description": "",
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Макияж",
+      "description": "",
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Уход за телом",
+      "description": "",
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Уход за волосами",
+      "description": "",
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Защита от солнца",
+      "description": "",
+      "deletedAt": null
+    }
+  ],
+  "suppliers": [
+    {
+      "id": 1,
+      "name": "Дерма Косметик",
+      "city": "Москва",
+      "email": "derma@example.com",
+      "phone": "+7 900 100-10-01",
+      "brandIds": [
+        1,
+        7,
+        8
+      ],
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Бьюти Дистрибьюшн",
+      "city": "Санкт-Петербург",
+      "email": "beauty@example.com",
+      "phone": "+7 900 100-10-02",
+      "brandIds": [
+        2,
+        4,
+        5,
+        6
+      ],
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Корея Бьюти",
+      "city": "Казань",
+      "email": "korea@example.com",
+      "phone": "+7 900 100-10-03",
+      "brandIds": [
+        3
+      ],
+      "deletedAt": null
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "name": "Анна Смирнова",
+      "email": "customer1@example.com",
+      "phone": "+7 900 200-0001",
+      "card": {
+        "id": 1,
+        "number": "LC-000001",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 100
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Мария Иванова",
+      "email": "customer2@example.com",
+      "phone": "+7 900 200-0002",
+      "card": {
+        "id": 2,
+        "number": "LC-000002",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 200
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Елена Петрова",
+      "email": "customer3@example.com",
+      "phone": "+7 900 200-0003",
+      "card": {
+        "id": 3,
+        "number": "LC-000003",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 300
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Ольга Соколова",
+      "email": "customer4@example.com",
+      "phone": "+7 900 200-0004",
+      "card": {
+        "id": 4,
+        "number": "LC-000004",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 400
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Дарья Кузнецова",
+      "email": "customer5@example.com",
+      "phone": "+7 900 200-0005",
+      "card": {
+        "id": 5,
+        "number": "LC-000005",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 500
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "Софья Попова",
+      "email": "customer6@example.com",
+      "phone": "+7 900 200-0006",
+      "card": {
+        "id": 6,
+        "number": "LC-000006",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 600
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "Ирина Новикова",
+      "email": "customer7@example.com",
+      "phone": "+7 900 200-0007",
+      "card": {
+        "id": 7,
+        "number": "LC-000007",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 700
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "Алина Морозова",
+      "email": "customer8@example.com",
+      "phone": "+7 900 200-0008",
+      "card": {
+        "id": 8,
+        "number": "LC-000008",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 800
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 9,
+      "name": "Екатерина Волкова",
+      "email": "customer9@example.com",
+      "phone": "+7 900 200-0009",
+      "card": {
+        "id": 9,
+        "number": "LC-000009",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 900
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 10,
+      "name": "Полина Фёдорова",
+      "email": "customer10@example.com",
+      "phone": "+7 900 200-0010",
+      "card": {
+        "id": 10,
+        "number": "LC-000010",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 1000
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 11,
+      "name": "Юлия Орлова",
+      "email": "customer11@example.com",
+      "phone": "+7 900 200-0011",
+      "card": {
+        "id": 11,
+        "number": "LC-000011",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 1100
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 12,
+      "name": "Виктория Васильева",
+      "email": "customer12@example.com",
+      "phone": "+7 900 200-0012",
+      "card": {
+        "id": 12,
+        "number": "LC-000012",
+        "issuedAt": "2026-01-15T00:00:00.000",
+        "expiresAt": "2029-01-15T00:00:00.000",
+        "points": 1200
+      },
+      "deletedAt": null
+    }
+  ]
+}

@@ -5,10 +5,13 @@ import '../models/catalog_query.dart';
 import '../models/page_result.dart';
 import '../repositories/catalog_repository.dart';
 import 'load_state.dart';
+import '../core/api_exceptions.dart';
+import '../repositories/api_repository.dart';
 
 class CatalogNotifier<T extends CatalogEntity> extends ChangeNotifier {
   final CatalogRepository<T> _repository;
-  CatalogNotifier(this._repository);
+  final void Function()? refreshReferences;
+  CatalogNotifier(this._repository, {this.refreshReferences});
   CatalogQuery _query = const CatalogQuery();
   CatalogQuery get query => _query;
   LoadState<PageResult<T>> _state = const Loading();
@@ -30,25 +33,30 @@ class CatalogNotifier<T extends CatalogEntity> extends ChangeNotifier {
   }
 
   Future<void> load({bool simulateError = false}) async {
+    refreshReferences?.call();
     final request = ++_request;
     final query = _query;
     _state = const Loading();
     _notify();
     try {
-      if (simulateError) {
+      if (simulateError && _repository is! CancellableRepository) {
         await Future<void>.delayed(const Duration(milliseconds: 250));
         throw StateError('Учебная имитация ошибки загрузки');
       }
-      final result = await _repository.find(query);
+      final result = await _repository.find(
+        simulateError ? query.copyWith(debugFail: 500) : query,
+      );
       // Медленный старый запрос не должен заменить результат нового.
       if (_disposed || request != _request) return;
       // Сохраняем исходный запрос: результат может содержать скорректированную страницу.
       _state = Loaded(result);
-    } catch (_) {
+    } catch (e) {
       if (_disposed || request != _request) return;
       _state = Failed(
-        simulateError
-            ? 'Демонстрационная ошибка загрузки. Нажмите «Повторить», чтобы вернуть каталог.'
+        simulateError && _repository is! CancellableRepository
+            ? 'Вот пример ошибки загрузки. Нажмите «Повторить», чтобы вернуть каталог.'
+            : e is ApiException
+            ? e.message
             : 'Не удалось загрузить каталог. Попробуйте ещё раз.',
       );
     }
@@ -105,6 +113,9 @@ class CatalogNotifier<T extends CatalogEntity> extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_repository case CancellableRepository r) {
+      r.cancelPending();
+    }
     _disposed = true;
     _request++;
     super.dispose();

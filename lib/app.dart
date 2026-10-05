@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme.dart';
+import 'core/api_client.dart';
+import 'repositories/api_repository.dart';
 import 'models/catalog_entity.dart';
 import 'models/product.dart';
 import 'models/brand.dart';
@@ -31,12 +33,14 @@ import 'widgets/app_shell.dart';
 import 'widgets/result_message.dart';
 
 class CosmeticsApp extends StatefulWidget {
+  final bool useApi;
   final ProductRepository? products;
   final BrandRepository? brands;
   final ShopDatabase? database;
   final String? initialLocation;
   const CosmeticsApp({
     super.key,
+    this.useApi = true,
     this.products,
     this.brands,
     this.database,
@@ -47,23 +51,42 @@ class CosmeticsApp extends StatefulWidget {
 }
 
 class _CosmeticsAppState extends State<CosmeticsApp> {
-  late final ShopDatabase _db = widget.database ?? ShopDatabase.memory();
+  late final ShopDatabase? _db = widget.useApi
+      ? null
+      : widget.database ?? ShopDatabase.memory();
+  late final _dio = buildDio();
+  void _changed(EntityKind kind) {
+    _reference.invalidate(kind);
+    _reference.load();
+  }
+
+  void _localChanged() {
+    _reference.load();
+  }
+
   late final ProductRepository _products =
-      widget.products ?? PersistentProductRepository(_db);
+      widget.products ??
+      (widget.useApi
+          ? ApiProductRepository(_dio, onChanged: _changed)
+          : PersistentProductRepository(_db!));
   late final BrandRepository _brands =
-      widget.brands ?? PersistentBrandRepository(_db);
-  late final _categories = PersistentRepository<Category>(
-    _db,
-    EntityKind.categories,
-  );
-  late final _suppliers = PersistentRepository<Supplier>(
-    _db,
-    EntityKind.suppliers,
-  );
-  late final _customers = PersistentRepository<Customer>(
-    _db,
-    EntityKind.customers,
-  );
+      widget.brands ??
+      (widget.useApi
+          ? ApiBrandRepository(_dio, onChanged: _changed)
+          : PersistentBrandRepository(_db!));
+  late final CatalogRepository<Category> _categories = widget.useApi
+      ? ApiRepository<Category>(
+          _dio,
+          EntityKind.categories,
+          onChanged: _changed,
+        )
+      : PersistentRepository<Category>(_db!, EntityKind.categories);
+  late final CatalogRepository<Supplier> _suppliers = widget.useApi
+      ? ApiRepository<Supplier>(_dio, EntityKind.suppliers, onChanged: _changed)
+      : PersistentRepository<Supplier>(_db!, EntityKind.suppliers);
+  late final CatalogRepository<Customer> _customers = widget.useApi
+      ? ApiRepository<Customer>(_dio, EntityKind.customers, onChanged: _changed)
+      : PersistentRepository<Customer>(_db!, EntityKind.customers);
   late final Map<EntityKind, CatalogRepository<CatalogEntity>> _repositories = {
     EntityKind.products: _products,
     EntityKind.brands: _brands,
@@ -71,13 +94,13 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
     EntityKind.suppliers: _suppliers,
     EntityKind.customers: _customers,
   };
-  late final _reference = CatalogReference(_repositories);
+  late final _reference = CatalogReference(_repositories, cache: widget.useApi);
   final _guard = NavigationGuard();
   @override
   void initState() {
     super.initState();
     _reference.load();
-    _db.addListener(_reference.load);
+    _db?.addListener(_localChanged);
   }
 
   String _back(GoRouterState state, String fallback) {
@@ -199,30 +222,48 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
   @override
   void dispose() {
     _router.dispose();
-    _db.removeListener(_reference.load);
+    _db?.removeListener(_localChanged);
     _reference.dispose();
-    if (widget.database == null) _db.dispose();
+    if (widget.database == null) _db?.dispose();
+    if (widget.useApi) _dio.close(force: true);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => MultiProvider(
     providers: [
-      ChangeNotifierProvider<ShopDatabase>.value(value: _db),
+      if (_db != null) ChangeNotifierProvider<ShopDatabase>.value(value: _db),
       ChangeNotifierProvider<CatalogReference>.value(value: _reference),
       Provider<NavigationGuard>.value(value: _guard),
       ChangeNotifierProvider(
-        create: (_) => CatalogNotifier<Product>(_products),
-      ),
-      ChangeNotifierProvider(create: (_) => CatalogNotifier<Brand>(_brands)),
-      ChangeNotifierProvider(
-        create: (_) => CatalogNotifier<Category>(_categories),
-      ),
-      ChangeNotifierProvider(
-        create: (_) => CatalogNotifier<Supplier>(_suppliers),
+        create: (_) => CatalogNotifier<Product>(
+          _products,
+          refreshReferences: widget.useApi ? _reference.load : null,
+        ),
       ),
       ChangeNotifierProvider(
-        create: (_) => CatalogNotifier<Customer>(_customers),
+        create: (_) => CatalogNotifier<Brand>(
+          _brands,
+          refreshReferences: widget.useApi ? _reference.load : null,
+        ),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => CatalogNotifier<Category>(
+          _categories,
+          refreshReferences: widget.useApi ? _reference.load : null,
+        ),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => CatalogNotifier<Supplier>(
+          _suppliers,
+          refreshReferences: widget.useApi ? _reference.load : null,
+        ),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => CatalogNotifier<Customer>(
+          _customers,
+          refreshReferences: widget.useApi ? _reference.load : null,
+        ),
       ),
     ],
     child: MaterialApp.router(

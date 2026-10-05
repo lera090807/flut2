@@ -13,7 +13,9 @@ void main() {
     tester.view.physicalSize = Size(width, 1100);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(CosmeticsApp(initialLocation: location));
+    await tester.pumpWidget(
+      CosmeticsApp(useApi: false, initialLocation: location),
+    );
     await tester.pumpAndSettle();
   }
 

@@ -14,6 +14,8 @@ class CatalogQuery {
   final int size;
   final bool includeDeleted;
   final bool onlyDeleted;
+  final int? debugFail;
+  final int? debugDelay;
   const CatalogQuery({
     this.search = '',
     this.filter = '',
@@ -27,6 +29,8 @@ class CatalogQuery {
     this.size = 10,
     this.includeDeleted = false,
     this.onlyDeleted = false,
+    this.debugFail,
+    this.debugDelay,
   });
   CatalogQuery copyWith({
     String? search,
@@ -41,6 +45,8 @@ class CatalogQuery {
     int? size,
     bool? includeDeleted,
     bool? onlyDeleted,
+    int? debugFail,
+    int? debugDelay,
   }) => CatalogQuery(
     search: search ?? this.search,
     filter: filter ?? this.filter,
@@ -56,6 +62,8 @@ class CatalogQuery {
     size: size ?? this.size,
     includeDeleted: includeDeleted ?? this.includeDeleted,
     onlyDeleted: onlyDeleted ?? this.onlyDeleted,
+    debugFail: debugFail ?? this.debugFail,
+    debugDelay: debugDelay ?? this.debugDelay,
   );
   factory CatalogQuery.fromUri(Uri uri, {bool brands = false, String? entity}) {
     final p = uri.queryParameters;
@@ -77,6 +85,8 @@ class CatalogQuery {
     final size = number('size') ?? 10;
     return CatalogQuery(
       search: p['search'] ?? '',
+      debugFail: number('__fail'),
+      debugDelay: number('__delay'),
       filter: p['filter'] ?? '',
       categoryId: brands ? null : number('categoryId'),
       brandId: brands ? null : number('brandId'),
@@ -103,6 +113,8 @@ class CatalogQuery {
       'size': '$size',
       if (includeDeleted) 'includeDeleted': 'true',
       if (onlyDeleted) 'onlyDeleted': 'true',
+      if (debugFail != null) '__fail': '$debugFail',
+      if (debugDelay != null) '__delay': '$debugDelay',
     },
   ).toString();
 }

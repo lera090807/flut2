@@ -57,7 +57,15 @@ class Supplier implements CatalogEntity {
     city: jsonString(j['city']),
     email: jsonString(j['email']),
     phone: jsonString(j['phone']),
-    brandIds: jsonIds(j['brandIds']),
+    brandIds: jsonIds(
+      j['brandIds'] ??
+          (j['brands'] is List
+              ? (j['brands'] as List)
+                    .whereType<Map>()
+                    .map((e) => e['id'])
+                    .toList()
+              : null),
+    ),
     deletedAt: jsonDate(j['deletedAt']),
   );
 }

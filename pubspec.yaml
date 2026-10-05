@@ -1,5 +1,5 @@
 name: cosmetics
-description: 'Магазин косметики — Практические работы 2–3.'
+description: 'Магазин косметики — Практические работы 2–4.'
 publish_to: 'none'
 version: 1.0.0+1
 environment:
@@ -17,6 +17,7 @@ dependencies:
   go_router: ^17.5.0
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
+  dio: ^5.11.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

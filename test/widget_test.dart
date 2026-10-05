@@ -19,6 +19,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       CosmeticsApp(
+        useApi: false,
         initialLocation: location,
         products: products ?? InMemoryProductRepository(latency: Duration.zero),
         brands: InMemoryBrandRepository(latency: Duration.zero),

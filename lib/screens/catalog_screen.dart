@@ -12,6 +12,7 @@ import '../models/catalog_query.dart';
 import '../models/page_result.dart';
 import '../state/catalog_notifier.dart';
 import '../state/catalog_reference.dart';
+import '../core/api_exceptions.dart';
 import '../state/load_state.dart';
 import '../widgets/confirm_delete.dart';
 import '../widgets/entity_table.dart';
@@ -143,6 +144,8 @@ class _CatalogScreenState<T extends CatalogEntity>
       _snack('Удалено записей: $count');
     } on RelatedRecordsException catch (e) {
       _snack(e.toString());
+    } on ApiException catch (e) {
+      _snack(e.message);
     } on StorageException catch (e) {
       _snack(e.message);
     } catch (_) {
@@ -175,6 +178,8 @@ class _CatalogScreenState<T extends CatalogEntity>
       _snack(action == 'restore' ? 'Запись восстановлена' : 'Запись удалена');
     } on RelatedRecordsException catch (e) {
       _snack(e.toString());
+    } on ApiException catch (e) {
+      _snack(e.message);
     } on StorageException catch (e) {
       _snack(e.message);
     } catch (_) {
@@ -648,7 +653,7 @@ class _CatalogScreenState<T extends CatalogEntity>
                     ),
                     PopupMenuItem(
                       value: 'error',
-                      child: Text('Показать учебную ошибку'),
+                      child: Text('Показать пример ошибки'),
                     ),
                   ],
                 ),

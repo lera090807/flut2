@@ -7,9 +7,16 @@ class Category implements CatalogEntity {
   @override
   final String name;
   final String description;
+  final int? productCount;
   @override
   final DateTime? deletedAt;
-  const Category(this.id, this.name, {this.description = '', this.deletedAt});
+  const Category(
+    this.id,
+    this.name, {
+    this.description = '',
+    this.productCount,
+    this.deletedAt,
+  });
   @override
   bool get isDeleted => deletedAt != null;
   Category copyWith({
@@ -22,6 +29,7 @@ class Category implements CatalogEntity {
     id ?? this.id,
     name ?? this.name,
     description: description ?? this.description,
+    productCount: productCount,
     deletedAt: clearDeletedAt ? null : deletedAt ?? this.deletedAt,
   );
   @override
@@ -35,6 +43,7 @@ class Category implements CatalogEntity {
     jsonInt(j['id']),
     jsonString(j['name']),
     description: jsonString(j['description']),
+    productCount: j['productCount'] is int ? j['productCount'] : null,
     deletedAt: jsonDate(j['deletedAt']),
   );
 }

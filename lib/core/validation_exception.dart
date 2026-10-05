@@ -1,6 +1,8 @@
-class ValidationException implements Exception {
+import 'api_exceptions.dart';
+
+class ValidationException extends ApiException {
   final Map<String, String> errors;
-  ValidationException(this.errors);
+  ValidationException(this.errors) : super('Ошибка валидации');
 }
 
 class RelatedRecordsException implements Exception {

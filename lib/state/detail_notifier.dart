@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/catalog_entity.dart';
 import '../repositories/catalog_repository.dart';
 import 'load_state.dart';
+import '../core/api_exceptions.dart';
 
 class DetailNotifier<T extends CatalogEntity> extends ChangeNotifier {
   final CatalogRepository<T> _repository;
@@ -17,9 +18,11 @@ class DetailNotifier<T extends CatalogEntity> extends ChangeNotifier {
       final item = await _repository.findById(id);
       if (_disposed) return;
       state = Loaded(item);
-    } catch (_) {
+    } catch (e) {
       if (_disposed) return;
-      state = const Failed('Не удалось загрузить карточку');
+      state = Failed(
+        e is ApiException ? e.message : 'Не удалось загрузить карточку',
+      );
     }
     notifyListeners();
   }

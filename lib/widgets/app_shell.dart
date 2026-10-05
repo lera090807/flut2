@@ -24,7 +24,7 @@ class AppShell extends StatelessWidget {
     );
     final index = selected < 0 ? 0 : selected;
     final width = MediaQuery.sizeOf(context).width;
-    final database = context.watch<ShopDatabase>();
+    final database = context.watch<ShopDatabase?>();
     void navigate(int i) => context.go(EntityKind.values[i].path);
     return Scaffold(
       appBar: AppBar(
@@ -44,9 +44,9 @@ class AppShell extends StatelessWidget {
       ),
       body: Column(
         children: [
-          if (database.notice != null)
+          if (database?.notice != null)
             MaterialBanner(
-              content: Text(database.notice!),
+              content: Text(database!.notice!),
               actions: [
                 TextButton(
                   onPressed: database.dismissNotice,
