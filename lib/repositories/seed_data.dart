@@ -4,8 +4,6 @@ import '../models/product.dart';
 import '../models/supplier.dart';
 import '../models/customer.dart';
 import '../models/loyalty_card.dart';
-
-// Реальные бренды; ассортимент, цены, остатки и контрагенты — учебные данные.
 const seedBrands = [
   Brand(
     id: 1,

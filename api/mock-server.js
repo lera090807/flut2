@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 'use strict';
-// Учебный REST API магазина косметики. Данные в памяти; БД не требуется.
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -182,7 +181,6 @@ if (require.main === module) {
       process.exitCode = 1;
     };
     if (error.code !== 'EADDRINUSE') return report();
-    // Do not stop an existing server or reset its in-memory records.
     const probe = http.get(`http://127.0.0.1:${port}/api/__health`, response => {
       let body = '';
       response.on('data', chunk => {

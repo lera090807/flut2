@@ -1,6 +1,4 @@
 const _unset = Object();
-
-/// Адрес браузера является источником условий отбора.
 class CatalogQuery {
   final String search;
   final String filter;

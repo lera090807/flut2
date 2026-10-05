@@ -46,9 +46,7 @@ class CatalogNotifier<T extends CatalogEntity> extends ChangeNotifier {
       final result = await _repository.find(
         simulateError ? query.copyWith(debugFail: 500) : query,
       );
-      // Медленный старый запрос не должен заменить результат нового.
       if (_disposed || request != _request) return;
-      // Сохраняем исходный запрос: результат может содержать скорректированную страницу.
       _state = Loaded(result);
     } catch (e) {
       if (_disposed || request != _request) return;

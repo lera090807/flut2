@@ -57,7 +57,6 @@ abstract class InMemoryRepository<T extends CatalogEntity>
   @override
   Future<T?> findById(int id) async {
     await Future<void>.delayed(latency);
-    // Удалённые доступны в карточке для просмотра и восстановления.
     return _rows.where((e) => e.id == id).firstOrNull;
   }
 
@@ -101,7 +100,6 @@ abstract class InMemoryRepository<T extends CatalogEntity>
   Future<int> deleteMany(List<int> ids) async {
     var count = 0;
     for (final id in ids.toSet()) {
-      // В образце b[i] ошибочно обращался к сущности как к массиву.
       final i = _rows.indexWhere(
         (entity) => entity.id == id && !entity.isDeleted,
       );

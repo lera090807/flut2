@@ -1,4 +1,3 @@
-// Безопасный разбор данных из localStorage и будущего API.
 String jsonString(Object? value, [String fallback = '']) =>
     value is String ? value : fallback;
 int jsonInt(Object? value, [int fallback = 0]) => value is int

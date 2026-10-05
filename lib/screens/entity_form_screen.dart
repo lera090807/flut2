@@ -46,8 +46,6 @@ class EntityFormScreen extends StatelessWidget {
     };
   }
 }
-
-/// Один Form, разметка и отправка для всех пяти сущностей и обоих режимов.
 class EntityEditor extends StatefulWidget {
   final CatalogEntity? entity;
   final String back;

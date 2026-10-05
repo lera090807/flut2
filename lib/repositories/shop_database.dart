@@ -120,8 +120,6 @@ class ShopDatabase extends ChangeNotifier {
       );
     }
   }
-
-  // Одна запись JSON сохраняет связанные данные атомарно; память меняется только после успешной записи.
   Future<R> transaction<R>(R Function(ShopRows, Map<EntityKind, int>) action) {
     final future = _queue.then((_) async {
       final next = <EntityKind, List<CatalogEntity>>{

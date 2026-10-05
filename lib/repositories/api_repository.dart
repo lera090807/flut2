@@ -11,8 +11,6 @@ import '../models/brand.dart';
 import 'catalog_repository.dart';
 import 'product_repository.dart';
 import 'brand_repository.dart';
-
-/// Optional lifecycle capability; the CRUD interface stays unchanged.
 abstract interface class CancellableRepository {
   void cancelPending();
 }
@@ -47,7 +45,6 @@ class ApiRepository<T extends CatalogEntity>
         return await action();
       } on DioException catch (e) {
         final error = mapDioError(e);
-        // Three attempts TOTAL, only idempotent reads, never cancelled or HTTP errors.
         if (!read || error is! NetworkException || attempt >= 2) throw error;
         await Future<void>.delayed(retryDelay * (1 << attempt));
       } on FormatException {
@@ -64,7 +61,6 @@ class ApiRepository<T extends CatalogEntity>
   T _decode(dynamic value) => kind.decode(_object(value)) as T;
   @override
   Future<PageResult<T>> find(CatalogQuery q) {
-    // Reference loads have their own lifetime and must not cancel a visible list.
     CancelToken? token;
     if (!q.includeDeleted) {
       cancelPending();

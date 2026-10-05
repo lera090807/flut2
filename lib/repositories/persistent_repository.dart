@@ -166,7 +166,6 @@ class PersistentRepository<T extends CatalogEntity>
     final selected = rows[kind]!
         .where((e) => ids.contains(e.id) && !e.isDeleted)
         .toList();
-    // Проверяем всю группу до изменения: частичного удаления при отказе нет.
     for (final entity in selected) {
       database.checkDelete(kind, entity.id, rows);
     }

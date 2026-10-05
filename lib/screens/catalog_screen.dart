@@ -94,7 +94,6 @@ class _CatalogScreenState<T extends CatalogEntity>
     _debounce?.cancel();
     final location = query.location(widget.path);
     if (location != widget.query.location(widget.path)) {
-      // go сохраняет завершённые изменения фильтров в истории браузера.
       context.go(location);
     }
   }
@@ -440,8 +439,6 @@ class _CatalogScreenState<T extends CatalogEntity>
         Loaded(data: final result) => _loaded(result, compact),
       };
   Widget _loaded(PageResult<T> result, bool compact) {
-    // Корректируем только результат именно этого запроса, например после удаления.
-    // Старые данные во время смены URL никогда не должны возвращать прошлую страницу.
     if (result.page != widget.query.page) {
       final requestedLocation = widget.query.location(widget.path);
       WidgetsBinding.instance.addPostFrameCallback((_) {
