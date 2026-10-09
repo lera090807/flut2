@@ -43,7 +43,12 @@ ApiException mapDioError(DioException e) {
   };
 }
 
-Dio buildDio({String? baseUrl, String? Function()? tokenProvider}) {
+Dio buildDio({
+  String? baseUrl,
+  String? Function()? tokenProvider,
+  Future<void> Function()? refreshSession,
+  Future<void> Function()? endSession,
+}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl ?? apiBaseUrl,
@@ -83,7 +88,45 @@ Dio buildDio({String? baseUrl, String? Function()? tokenProvider}) {
           handler.next(response);
         }
       },
-      onError: (e, handler) {
+      onError: (e, handler) async {
+        if (e.response?.statusCode == 401 &&
+            !e.requestOptions.path.startsWith('/auth/') &&
+            refreshSession != null) {
+          final options = e.requestOptions;
+          if (options.extra['authRetried'] == true) {
+            await endSession?.call();
+          } else {
+            try {
+              final sent = options.headers['Authorization'];
+              final current = tokenProvider?.call();
+              if (current == null || sent == 'Bearer $current') {
+                await refreshSession();
+              }
+              if (options.cancelToken?.isCancelled == true) {
+                handler.next(e);
+                return;
+              }
+              options.extra['authRetried'] = true;
+              options.headers['Authorization'] =
+                  'Bearer ${tokenProvider?.call()}';
+              final response = await dio.fetch(options);
+              handler.resolve(response);
+              return;
+            } on DioException catch (retryError) {
+              handler.next(retryError);
+              return;
+            } catch (_) {
+              handler.next(
+                e.copyWith(
+                  error: const UnauthorizedException(
+                    'Сессия завершена. Войдите снова.',
+                  ),
+                ),
+              );
+              return;
+            }
+          }
+        }
         if (kDebugMode) {
           debugPrint(
             '[API] ${e.requestOptions.method} ${e.requestOptions.uri} → ${e.response?.statusCode ?? e.type.name}',

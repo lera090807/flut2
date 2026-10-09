@@ -14,6 +14,8 @@ import 'package:intl/intl.dart';
 
 import '../state/detail_notifier.dart';
 import '../state/catalog_reference.dart';
+import '../state/auth_notifier.dart';
+import '../models/app_user.dart';
 import '../state/load_state.dart';
 import '../widgets/result_message.dart';
 
@@ -129,16 +131,17 @@ class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: () => context.go(
-                Uri(
-                  path: '${GoRouterState.of(context).uri.path}/edit',
-                  queryParameters: {'from': back},
-                ).toString(),
+            if (context.watch<AuthNotifier?>()?.displayRole != Role.customer)
+              OutlinedButton.icon(
+                onPressed: () => context.go(
+                  Uri(
+                    path: '${GoRouterState.of(context).uri.path}/edit',
+                    queryParameters: {'from': back},
+                  ).toString(),
+                ),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Редактировать'),
               ),
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Редактировать'),
-            ),
             const SizedBox(height: 24),
             for (final entry in fields.entries)
               Padding(

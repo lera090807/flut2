@@ -4,6 +4,7 @@ import '../models/product.dart';
 import '../models/supplier.dart';
 import '../models/customer.dart';
 import '../models/loyalty_card.dart';
+
 const seedBrands = [
   Brand(
     id: 1,
@@ -467,7 +468,7 @@ final seedCustomers = [
     Customer(
       id: i,
       name: [
-        'Анна Смирнова',
+        'Валерия Храброва',
         'Мария Иванова',
         'Елена Петрова',
         'Ольга Соколова',

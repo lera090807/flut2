@@ -5,10 +5,12 @@ const seed = require('./seed.json');
 async function withServer(run) {
   const server = createServer({log:false}); await new Promise(r => server.listen(0,'127.0.0.1',r));
   const root = `http://127.0.0.1:${server.address().port}/api`;
+  let accessToken;
   const call = async (path, method='GET', data) => {
-    const r = await fetch(root+path,{method,headers:{'Content-Type':'application/json'},body:data===undefined?undefined:JSON.stringify(data)});
+    const r = await fetch(root+path,{method,headers:{'Content-Type':'application/json',...(accessToken&&{Authorization:'Bearer '+accessToken})},body:data===undefined?undefined:JSON.stringify(data)});
     return {status:r.status, headers:r.headers, data:r.status===204?null:await r.json()};
   };
+  accessToken=(await call('/auth/login','POST',{username:'admin',password:'Admin123!'})).data.accessToken;
   try { await run(call); } finally { await new Promise(r => server.close(r)); }
 }
 test('health, CORS preflight, 500 and real delay', () => withServer(async call => {

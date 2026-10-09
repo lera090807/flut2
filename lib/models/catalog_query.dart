@@ -1,4 +1,5 @@
 const _unset = Object();
+
 class CatalogQuery {
   final String search;
   final String filter;

@@ -4,6 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme.dart';
+import 'core/permissions.dart';
+import 'state/auth_notifier.dart';
+import 'models/app_user.dart';
+import 'screens/auth_screen.dart';
+import 'screens/role_screen.dart';
+import 'widgets/session_watcher.dart';
 import 'core/api_client.dart';
 import 'repositories/api_repository.dart';
 import 'models/catalog_entity.dart';
@@ -54,7 +60,30 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
   late final ShopDatabase? _db = widget.useApi
       ? null
       : widget.database ?? ShopDatabase.memory();
-  late final _dio = buildDio();
+  late final _dio = buildDio(
+    tokenProvider: () => _auth?.accessToken,
+    refreshSession: widget.useApi ? () => _auth!.refreshTokens() : null,
+    endSession: widget.useApi
+        ? () => _auth!.logout(reason: 'Сессия завершена. Войдите снова.')
+        : null,
+  );
+  late final AuthNotifier? _auth = widget.useApi ? AuthNotifier(_dio) : null;
+  int _authEpoch = -1;
+  void _authChanged() {
+    final auth = _auth!;
+    if (auth.epoch != _authEpoch || !auth.isAuthenticated) {
+      _authEpoch = auth.epoch;
+      _reference.reset();
+    }
+    _reference.enabled = auth.isAuthenticated;
+    _reference.referenceKinds = auth.user?.role == Role.customer
+        ? {EntityKind.brands, EntityKind.categories}
+        : {EntityKind.brands, EntityKind.categories, EntityKind.suppliers};
+    _reference.includeDeleted = auth.user?.role != Role.customer;
+    if (auth.isAuthenticated) _reference.load();
+    if (mounted) setState(() {});
+  }
+
   void _changed(EntityKind kind) {
     _reference.invalidate(kind);
     _reference.load();
@@ -99,7 +128,13 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
   @override
   void initState() {
     super.initState();
-    _reference.load();
+    if (widget.useApi) {
+      _reference.enabled = false;
+      _auth!.addListener(_authChanged);
+      _auth.restore();
+    } else {
+      _reference.load();
+    }
     _db?.addListener(_localChanged);
   }
 
@@ -131,7 +166,8 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
     ),
     GoRoute(
       path: '${kind.path}/new',
-      onExit: (_, _) => _guard.allowExit(),
+      onExit: (_, _) =>
+          _auth != null && !_auth.isAuthenticated ? true : _guard.allowExit(),
       builder: (_, s) => ChangeNotifierProvider(
         key: ValueKey(s.uri.path),
         create: (_) =>
@@ -141,7 +177,8 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
     ),
     GoRoute(
       path: '${kind.path}/:id/edit',
-      onExit: (_, _) => _guard.allowExit(),
+      onExit: (_, _) =>
+          _auth != null && !_auth.isAuthenticated ? true : _guard.allowExit(),
       builder: (_, s) => ChangeNotifierProvider(
         key: ValueKey(s.uri.path),
         create: (_) => EditorNotifier(
@@ -167,11 +204,66 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
   ];
   late final _router = GoRouter(
     initialLocation: widget.initialLocation,
+    refreshListenable: _auth,
+    redirect: (_, state) {
+      final auth = _auth;
+      if (auth == null) return null;
+      final path = state.uri.path;
+      final public = ['/login', '/register', '/session'].contains(path);
+      final from = public
+          ? safeReturnPath(state.uri.queryParameters['from'])
+          : state.uri.toString();
+      if (!auth.ready) {
+        return path == '/session'
+            ? null
+            : Uri(path: '/session', queryParameters: {'from': from}).toString();
+      }
+      if (!auth.isAuthenticated) {
+        return ['/login', '/register'].contains(path)
+            ? null
+            : Uri(path: '/login', queryParameters: {'from': from}).toString();
+      }
+      if (public) return safeReturnPath(from);
+      if (!canAccess(auth.displayRole, path)) return '/forbidden';
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: '/login',
+        builder: (_, s) => AuthScreen(
+          key: const ValueKey('login'),
+          from: s.uri.queryParameters['from'],
+        ),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (_, s) => AuthScreen(
+          key: const ValueKey('register'),
+          register: true,
+          from: s.uri.queryParameters['from'],
+        ),
+      ),
+      GoRoute(path: '/session', builder: (_, _) => const SessionScreen()),
       GoRoute(path: '/', redirect: (_, _) => '/products'),
       ShellRoute(
         builder: (_, _, child) => AppShell(child: child),
         routes: [
+          GoRoute(
+            path: '/forbidden',
+            builder: (context, _) => ResultMessage(
+              icon: Icons.lock_outline,
+              title: 'Нет доступа',
+              message: 'Эта страница недоступна для вашей роли.',
+              actionLabel: 'В каталог',
+              onAction: () => context.go('/products'),
+            ),
+          ),
+          for (final section in ['account', 'my-orders', 'orders', 'admin'])
+            GoRoute(
+              path: '/$section',
+              builder: (_, _) =>
+                  RoleScreen(key: ValueKey(section), section: section),
+            ),
           ..._routes<Product>(
             EntityKind.products,
             _products,
@@ -221,6 +313,8 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
   );
   @override
   void dispose() {
+    _auth?.removeListener(_authChanged);
+    _auth?.dispose();
     _router.dispose();
     _db?.removeListener(_localChanged);
     _reference.dispose();
@@ -231,7 +325,10 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
 
   @override
   Widget build(BuildContext context) => MultiProvider(
+    key: ValueKey(_auth?.sessionRevision ?? 0),
     providers: [
+      if (_auth != null)
+        ChangeNotifierProvider<AuthNotifier>.value(value: _auth),
       if (_db != null) ChangeNotifierProvider<ShopDatabase>.value(value: _db),
       ChangeNotifierProvider<CatalogReference>.value(value: _reference),
       Provider<NavigationGuard>.value(value: _guard),
@@ -268,6 +365,8 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
     ],
     child: MaterialApp.router(
       title: 'Магазин косметики',
+      builder: (_, child) =>
+          _auth == null ? child! : SessionWatcher(auth: _auth, child: child!),
       debugShowCheckedModeBanner: false,
       theme: cosmeticsTheme(),
       locale: const Locale('ru'),

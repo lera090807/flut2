@@ -46,6 +46,7 @@ class EntityFormScreen extends StatelessWidget {
     };
   }
 }
+
 class EntityEditor extends StatefulWidget {
   final CatalogEntity? entity;
   final String back;

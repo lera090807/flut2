@@ -8,10 +8,26 @@ import '../models/category.dart';
 import '../models/product.dart';
 import '../models/supplier.dart';
 import '../repositories/catalog_repository.dart';
+import '../repositories/api_repository.dart';
 
 class CatalogReference extends ChangeNotifier {
   final Map<EntityKind, CatalogRepository<CatalogEntity>> repositories;
   final bool cache;
+  bool enabled = true, includeDeleted = true;
+  Set<EntityKind> referenceKinds = {
+    EntityKind.brands,
+    EntityKind.categories,
+    EntityKind.suppliers,
+  };
+  void reset() {
+    _data = {};
+    error = null;
+    _generation++;
+    _request++;
+    _loadedGeneration = -1;
+    _pending = null;
+  }
+
   CatalogReference(this.repositories, {this.cache = false});
   Future<void>? _pending;
   int _generation = 0;
@@ -25,7 +41,9 @@ class CatalogReference extends ChangeNotifier {
   bool _disposed = false;
   int _request = 0;
   String? error;
-  bool get ready => _data.length == (cache ? 3 : EntityKind.values.length);
+  bool get ready =>
+      _data.length ==
+      (cache ? referenceKinds.length : EntityKind.values.length);
   List<T> all<T extends CatalogEntity>(EntityKind kind) =>
       List.unmodifiable((_data[kind] ?? []).cast<T>());
   List<Brand> get brands => all<Brand>(EntityKind.brands);
@@ -44,6 +62,7 @@ class CatalogReference extends ChangeNotifier {
             .where((p) => !p.isDeleted && p.categoryIds.contains(id))
             .length;
   Future<void> load() {
+    if (!enabled) return Future.value();
     if (!cache) return _load();
     if (_pending != null) return _pending!;
     if (ready && _loadedGeneration == _generation) return Future.value();
@@ -65,22 +84,20 @@ class CatalogReference extends ChangeNotifier {
     try {
       final entries = await Future.wait(
         repositories.entries
-            .where(
-              (entry) =>
-                  !cache ||
-                  [
-                    EntityKind.brands,
-                    EntityKind.categories,
-                    EntityKind.suppliers,
-                  ].contains(entry.key),
-            )
+            .where((entry) => !cache || referenceKinds.contains(entry.key))
             .map((entry) async {
               final list = <CatalogEntity>[];
               var page = 1;
               while (true) {
-                final result = await entry.value.find(
-                  CatalogQuery(includeDeleted: true, size: 50, page: page),
+                final query = CatalogQuery(
+                  includeDeleted: includeDeleted,
+                  size: 50,
+                  page: page,
                 );
+                final repo = entry.value;
+                final result = await (repo is ApiRepository<CatalogEntity>
+                    ? repo.findReference(query)
+                    : repo.find(query));
                 list.addAll(result.items);
                 if (!result.hasNext) break;
                 page++;

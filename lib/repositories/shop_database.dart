@@ -120,6 +120,7 @@ class ShopDatabase extends ChangeNotifier {
       );
     }
   }
+
   Future<R> transaction<R>(R Function(ShopRows, Map<EntityKind, int>) action) {
     final future = _queue.then((_) async {
       final next = <EntityKind, List<CatalogEntity>>{

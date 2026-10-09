@@ -14,6 +14,7 @@ class TableColumnSpec<T> {
 }
 
 class EntityTable<T> extends StatefulWidget {
+  final bool selectable;
   final List<TableColumnSpec<T>> columns;
   final List<T> items;
   final int Function(T) idOf;
@@ -26,6 +27,7 @@ class EntityTable<T> extends StatefulWidget {
   final List<Widget> Function(T) actions;
   const EntityTable({
     super.key,
+    this.selectable = true,
     required this.columns,
     required this.items,
     required this.idOf,
@@ -74,7 +76,10 @@ class _EntityTableState<T> extends State<EntityTable<T>> {
                 child: DataTable(
                   sortColumnIndex: sortIndex < 0 ? null : sortIndex,
                   sortAscending: widget.ascending,
-                  onSelectAll: (v) => widget.onSelectAll(v ?? false),
+                  onSelectAll: widget.selectable
+                      ? (v) => widget.onSelectAll(v ?? false)
+                      : null,
+                  showCheckboxColumn: widget.selectable,
                   columns: [
                     for (final c in widget.columns)
                       DataColumn(
@@ -90,8 +95,9 @@ class _EntityTableState<T> extends State<EntityTable<T>> {
                     for (final item in widget.items)
                       DataRow(
                         selected: widget.selected.contains(widget.idOf(item)),
-                        onSelectChanged: (_) =>
-                            widget.onToggleSelect(widget.idOf(item)),
+                        onSelectChanged: widget.selectable
+                            ? (_) => widget.onToggleSelect(widget.idOf(item))
+                            : null,
                         cells: [
                           for (final c in widget.columns)
                             DataCell(c.build(item)),

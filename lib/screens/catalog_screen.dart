@@ -12,6 +12,8 @@ import '../models/catalog_query.dart';
 import '../models/page_result.dart';
 import '../state/catalog_notifier.dart';
 import '../state/catalog_reference.dart';
+import '../state/auth_notifier.dart';
+import '../models/app_user.dart';
 import '../core/api_exceptions.dart';
 import '../state/load_state.dart';
 import '../widgets/confirm_delete.dart';
@@ -186,6 +188,11 @@ class _CatalogScreenState<T extends CatalogEntity>
     }
   }
 
+  bool get _canEdit =>
+      context.read<AuthNotifier?>()?.displayRole != Role.customer;
+  bool get _canErase =>
+      context.read<AuthNotifier?>() == null ||
+      context.read<AuthNotifier>().displayRole == Role.admin;
   List<Widget> _actions(T item) => [
     IconButton(
       tooltip: 'Открыть карточку',
@@ -197,19 +204,21 @@ class _CatalogScreenState<T extends CatalogEntity>
       ),
       icon: const Icon(Icons.open_in_new, size: 20),
     ),
-    PopupMenuButton<String>(
-      tooltip: 'Действия с записью',
-      enabled: !notifier.busy,
-      onSelected: (action) => _action(item, action),
-      itemBuilder: (_) => [
-        const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
-        if (item.isDeleted)
-          const PopupMenuItem(value: 'restore', child: Text('Восстановить'))
-        else
-          const PopupMenuItem(value: 'soft', child: Text('Удалить')),
-        const PopupMenuItem(value: 'hard', child: Text('Удалить навсегда')),
-      ],
-    ),
+    if (_canEdit)
+      PopupMenuButton<String>(
+        tooltip: 'Действия с записью',
+        enabled: !notifier.busy,
+        onSelected: (action) => _action(item, action),
+        itemBuilder: (_) => [
+          const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+          if (item.isDeleted && _canErase)
+            const PopupMenuItem(value: 'restore', child: Text('Восстановить'))
+          else if (!item.isDeleted)
+            const PopupMenuItem(value: 'soft', child: Text('Удалить')),
+          if (_canErase)
+            const PopupMenuItem(value: 'hard', child: Text('Удалить навсегда')),
+        ],
+      ),
   ];
   Widget _filters(bool compact) {
     final reference = context.watch<CatalogReference>();
@@ -398,18 +407,19 @@ class _CatalogScreenState<T extends CatalogEntity>
               runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Switch(
-                      value: q.onlyDeleted,
-                      onChanged: (v) => _navigate(
-                        q.copyWith(onlyDeleted: v, includeDeleted: false),
+                if (_canEdit)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Switch(
+                        value: q.onlyDeleted,
+                        onChanged: (v) => _navigate(
+                          q.copyWith(onlyDeleted: v, includeDeleted: false),
+                        ),
                       ),
-                    ),
-                    const Flexible(child: Text('Только удалённые')),
-                  ],
-                ),
+                      const Flexible(child: Text('Только удалённые')),
+                    ],
+                  ),
                 TextButton.icon(
                   onPressed: () => _navigate(const CatalogQuery()),
                   icon: const Icon(Icons.filter_alt_off_outlined, size: 18),
@@ -460,7 +470,7 @@ class _CatalogScreenState<T extends CatalogEntity>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (n.selected.isNotEmpty)
+        if (_canEdit && n.selected.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Wrap(
@@ -531,12 +541,13 @@ class _CatalogScreenState<T extends CatalogEntity>
                   children: [
                     Row(
                       children: [
-                        Checkbox(
-                          value: n.selected.contains(item.id),
-                          onChanged: n.busy
-                              ? null
-                              : (_) => n.toggleSelection(item.id),
-                        ),
+                        if (_canEdit)
+                          Checkbox(
+                            value: n.selected.contains(item.id),
+                            onChanged: n.busy
+                                ? null
+                                : (_) => n.toggleSelection(item.id),
+                          ),
                         Expanded(
                           child: Text(
                             item.name,
@@ -577,6 +588,7 @@ class _CatalogScreenState<T extends CatalogEntity>
                 columns: widget.columns,
                 items: result.items,
                 idOf: (e) => e.id,
+                selectable: _canEdit,
                 selected: n.selected,
                 onToggleSelect: n.toggleSelection,
                 onSelectAll: (v) =>
@@ -628,18 +640,19 @@ class _CatalogScreenState<T extends CatalogEntity>
                     ),
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Создать запись',
-                  onPressed: () => context.go(
-                    Uri(
-                      path: '${widget.path}/new',
-                      queryParameters: {
-                        'from': widget.query.location(widget.path),
-                      },
-                    ).toString(),
+                if (_canEdit)
+                  IconButton(
+                    tooltip: 'Создать запись',
+                    onPressed: () => context.go(
+                      Uri(
+                        path: '${widget.path}/new',
+                        queryParameters: {
+                          'from': widget.query.location(widget.path),
+                        },
+                      ).toString(),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline),
                   ),
-                  icon: const Icon(Icons.add_circle_outline),
-                ),
                 PopupMenuButton<String>(
                   tooltip: 'Проверка состояний',
                   onSelected: (v) => n.load(simulateError: v == 'error'),

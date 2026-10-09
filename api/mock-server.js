@@ -3,11 +3,14 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const {createAuth} = require('./auth');
 const args = process.argv.slice(2);
 const arg = (name, fallback) => args.includes('--' + name) ? args[args.indexOf('--' + name) + 1] : fallback;
 const kinds = ['products', 'brands', 'categories', 'suppliers', 'customers'];
 const fail = (status, message, errors) => { throw { status, message, ...(errors && { errors }) }; };
-function createServer({ origin = 'http://localhost:5555', log = true } = {}) {
+function createServer({ origin = 'http://localhost:5555', log = true, ttl = 900, sessionSeconds = 3600, now } = {}) {
+  const auth = createAuth({ttl,sessionSeconds,now});
+  const orders = []; let nextOrder = 1;
   const db = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8'));
   const seq = Object.fromEntries(kinds.map(k => [k, Math.max(0, ...db[k].map(e => e.id)) + 1]));
   const count = id => db.products.filter(p => !p.deletedAt && p.categoryIds.includes(id)).length;
@@ -88,6 +91,7 @@ function createServer({ origin = 'http://localhost:5555', log = true } = {}) {
     return e;
   }
   function checkDelete(k, id) {
+    if(k==='products'&&orders.some(o=>o.productId===id&&['new','ready'].includes(o.status))) fail(409,'На товар есть незавершённые заказы');
     const n = db.products.filter(p => k === 'brands' ? p.brandId === id : k === 'suppliers' ? p.supplierId === id : k === 'categories' ? p.categoryIds.includes(id) : false).length;
     const s = k === 'brands' ? db.suppliers.filter(s => s.brandIds.includes(id)).length : 0;
     if (n || s) fail(409, `Нельзя удалить запись: связанных ${n ? 'товаров' : 'поставщиков'} — ${n || s}. Сначала измените или удалите связи.`);
@@ -129,14 +133,14 @@ function createServer({ origin = 'http://localhost:5555', log = true } = {}) {
     res.on('finish', () => { if (log) console.log(`${req.method} ${req.url} → ${res.statusCode}`); });
     try {
       if (req.method === 'OPTIONS') return send(204);
-      if (url.pathname === '/api/__health' && req.method === 'GET') return send(200, { status: 'ok', service: 'cosmetics', storage: 'memory' });
+      if (url.pathname === '/api/__health' && req.method === 'GET') return send(200, { status: 'ok', service: 'cosmetics', storage: 'memory', auth: true });
       const delay = Math.min(10000, Math.max(0, Number(q.get('__delay')) || 0));
       if (delay) await new Promise(r => setTimeout(r, delay));
       if (res.destroyed) return;
       const failure = Number(q.get('__fail'));
       if (Number.isInteger(failure) && failure >= 400 && failure <= 599) fail(failure, `Вот пример ошибки ${failure}`);
       const parts = url.pathname.split('/').filter(Boolean), k = parts[1];
-      if (parts[0] !== 'api' || !kinds.includes(k) || parts.length > 4) fail(404, 'Адрес не найден');
+
       let body;
       if (['POST','PUT'].includes(req.method)) {
         if (!req.headers['content-type']?.startsWith('application/json')) fail(415, 'Требуется Content-Type: application/json');
@@ -144,6 +148,51 @@ function createServer({ origin = 'http://localhost:5555', log = true } = {}) {
         for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 1048576) fail(413, 'Слишком большой запрос'); }
         try { body = raw ? JSON.parse(raw) : {}; } catch { fail(400, 'Некорректный JSON'); }
       }
+      if (body !== undefined && (!body || typeof body !== 'object' || Array.isArray(body))) fail(400,'Ожидается JSON-объект');
+      if (parts[0] !== 'api') fail(404,'Адрес не найден');
+      if (k === 'auth' && parts.length === 3) {
+        const result=auth.handle(parts[2],req.method,body||{},req);return send(result.status,result.data);
+      }
+      const {user} = auth.authenticate(req);
+      if(k==='admin') {
+        auth.requireRole(user,'admin');
+        if(req.method==='GET' && url.pathname==='/api/admin/users') return send(200,{items:auth.listUsers()});
+        if(req.method==='PUT' && /^\/api\/admin\/users\/\d+\/role$/.test(url.pathname)) return send(200,auth.changeRole(user,Number(parts[3]),body.role));
+        if(req.method==='GET' && url.pathname==='/api/admin/stats') return send(200,{products:db.products.filter(p=>!p.deletedAt).length,customers:db.customers.filter(c=>!c.deletedAt).length,users:auth.listUsers().length,orders:orders.length});
+        fail(404,'Адрес не найден');
+      }
+      if(k==='account') {
+        auth.requireRole(user,'customer');
+        if(req.method==='GET' && parts.length===2) return send(200,{user:auth.publicUser(user),orders:orders.filter(o=>o.userId===user.id).length});
+        fail(404,'Адрес не найден');
+      }
+      if(k==='my-orders'||k==='orders') {
+        auth.requireRole(user,k==='my-orders'?'customer':'staff');
+        if(req.method==='GET' && parts.length===2) return send(200,{items:orders.filter(o=>k==='orders'||o.userId===user.id).map(o=>({...o,productName:linked('products',o.productId)?.name||'Товар удалён'}))});
+        if(k==='my-orders'&&req.method==='POST'&&parts.length===2) {
+          const p=linked('products',body.productId);if(!p||p.deletedAt) fail(422,'Выберите товар',{productId:'Товар не найден'});
+          if(p.stock<1) fail(409,'Этот товар закончился');
+          p.stock--;const order={id:nextOrder++,userId:user.id,customerName:user.fullName,productId:p.id,status:'new',pickupUntil:new Date(Date.now()+3*86400000).toISOString(),extended:false};orders.push(order);return send(201,order);
+        }
+        const order=orders.find(o=>o.id===Number(parts[2])&&(k==='orders'||o.userId===user.id));
+        if(!order) fail(404,'Заказ не найден');
+        if(k==='my-orders'&&req.method==='POST'&&parts[3]==='extend'&&parts.length===4) {
+          if(order.extended||!['new','ready'].includes(order.status)) fail(409,'Этот заказ уже нельзя продлить');
+          order.extended=true;order.pickupUntil=new Date(Date.parse(order.pickupUntil)+2*86400000).toISOString();return send(200,order);
+        }
+        if(k==='orders'&&req.method==='PUT'&&parts.length===3) {
+          const allowed={new:['ready','cancelled'],ready:['completed','cancelled']};
+          if(!allowed[order.status]?.includes(body.status)) fail(409,'Нельзя перевести заказ в этот статус');
+          if(body.status==='cancelled') {const p=linked('products',order.productId);if(p)p.stock++;}
+          order.status=body.status;return send(200,order);
+        }
+        fail(405,'Метод не поддерживается');
+      }
+      if (!kinds.includes(k) || parts.length > 4) fail(404, 'Адрес не найден');
+      if(['suppliers','customers'].includes(k)) auth.requireRole(user,'staff','admin');
+      if(req.method!=='GET') auth.requireRole(user,'staff','admin');
+      if(q.get('hard')==='true'||parts[3]==='restore') auth.requireRole(user,'admin');
+      if(user.role==='customer'&&(q.get('includeDeleted')==='true'||q.get('onlyDeleted')==='true')) fail(403,'Удалённые записи доступны сотрудникам');
       if (parts.length === 2) {
         if (req.method === 'GET') return send(200, list(k,q));
         if (req.method === 'POST') { const e = validate(k, body, seq[k]); seq[k]++; db[k].push(e); return send(201, expand(k,e)); }
@@ -156,7 +205,7 @@ function createServer({ origin = 'http://localhost:5555', log = true } = {}) {
         return send(200,{deleted:selected.length});
       }
       const id = Number(parts[2]), e = linked(k,id);
-      if (!e) fail(404, 'Запись не найдена');
+      if (!e || (user.role==='customer' && e.deletedAt)) fail(404, 'Запись не найдена');
       if (parts.length === 4 && parts[3] === 'restore' && req.method === 'POST') {
         const restored = validate(k,e,id); db[k][db[k].indexOf(e)] = restored; return send(200,expand(k,restored));
       }
@@ -172,7 +221,7 @@ function createServer({ origin = 'http://localhost:5555', log = true } = {}) {
 module.exports = { createServer };
 if (require.main === module) {
   const port = Number(arg('port',8080)), origin = arg('origin','http://localhost:5555');
-  const server = createServer({origin});
+  const server = createServer({origin, ttl: Number(arg('ttl',900)), sessionSeconds: Number(arg('session-seconds',3600))});
   server.on('error', error => {
     const report = () => {
       console.error(error.code === 'EADDRINUSE'

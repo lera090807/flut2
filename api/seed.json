@@ -592,7 +592,7 @@
   "customers": [
     {
       "id": 1,
-      "name": "Анна Смирнова",
+      "name": "Валерия Храброва",
       "email": "customer1@example.com",
       "phone": "+7 900 200-0001",
       "card": {
