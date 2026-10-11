@@ -57,7 +57,7 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
-  testWidgets('Карточки на 360px, таблица на 600px и переход к брендам', (
+  testWidgets('Карточки на 360px, таблица на 1280px и переход к брендам', (
     tester,
   ) async {
     await launch(tester, size: const Size(360, 800));
@@ -68,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Название бренда или страна'), findsOneWidget);
     expect(tester.takeException(), isNull);
-    tester.view.physicalSize = const Size(600, 800);
+    tester.view.physicalSize = const Size(1280, 800);
     await tester.pumpAndSettle();
     expect(find.byType(DataTable), findsOneWidget);
     expect(tester.takeException(), isNull);

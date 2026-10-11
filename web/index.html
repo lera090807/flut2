@@ -5,6 +5,7 @@
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Учебный каталог магазина косметики">
 
@@ -19,8 +20,25 @@
 
   <title>Магазин косметики</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    body { margin: 0; background: #faf8f6; }
+    #loading { position: fixed; inset: 0; display: grid; place-content: center; gap: 20px; padding: 24px; text-align: center; font: 16px system-ui, sans-serif; color: #59474e; }
+    #loading h1 { font-size: clamp(22px, 5vw, 32px); margin: 0; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #eadde2; border-top-color: #805266; border-radius: 50%; margin: auto; animation: spin 1s linear infinite; }
+    #loading button { padding: 12px 20px; border: 0; border-radius: 12px; background: #805266; color: white; font: inherit; cursor: pointer; }
+    #loading button:focus-visible { outline: 3px solid #59474e; outline-offset: 4px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+  </style>
 </head>
 <body>
+  <div id="loading" role="status" aria-live="polite">
+    <h1>Магазин косметики</h1>
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="loading-status">Загружаем приложение…</p>
+    <button id="loading-retry" hidden onclick="location.reload()">Повторить</button>
+  </div>
+  <noscript>Для работы магазина включите JavaScript в браузере.</noscript>
 
   <script src="flutter_bootstrap.js" async></script>
 </body>

@@ -67,6 +67,31 @@ class AppShell extends StatelessWidget {
       }
     }
 
+    final bottomEntries = entries.length > 5
+        ? entries.take(4).toList()
+        : entries;
+    Future<void> more() => showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      constraints: const BoxConstraints(maxWidth: 480),
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (var i = 4; i < entries.length; i++)
+              ListTile(
+                leading: Icon(entries[i].icon),
+                title: Text(entries[i].title),
+                selected: i == selected,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  go(i);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
     final navigation = [
       for (final e in entries)
         NavigationRailDestination(icon: Icon(e.icon), label: Text(e.title)),
@@ -81,6 +106,8 @@ class AppShell extends StatelessWidget {
             Flexible(
               child: Text(
                 'Магазин косметики',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
             ),
@@ -129,15 +156,28 @@ class AppShell extends StatelessWidget {
               ),
             )
           : null,
-      bottomNavigationBar: width < compactBreakpoint && entries.length <= 5
+      bottomNavigationBar: width < compactBreakpoint
           ? NavigationBar(
-              selectedIndex: selected < 0 ? 0 : selected,
-              onDestinationSelected: go,
+              selectedIndex: selected < 0
+                  ? 0
+                  : (entries.length > 5 && selected >= 4 ? 4 : selected),
+              onDestinationSelected: (index) {
+                if (entries.length > 5 && index == 4) {
+                  more();
+                } else {
+                  go(index);
+                }
+              },
               labelBehavior:
                   NavigationDestinationLabelBehavior.onlyShowSelected,
               destinations: [
-                for (final e in entries)
+                for (final e in bottomEntries)
                   NavigationDestination(icon: Icon(e.icon), label: e.title),
+                if (entries.length > 5)
+                  const NavigationDestination(
+                    icon: Icon(Icons.more_horiz),
+                    label: 'Ещё',
+                  ),
               ],
             )
           : null,
@@ -181,7 +221,14 @@ class AppShell extends StatelessWidget {
                   ),
                   const VerticalDivider(width: 1),
                 ],
-                Expanded(child: child),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1280),
+                      child: SizedBox.expand(child: child),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

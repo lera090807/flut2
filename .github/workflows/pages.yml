@@ -1,0 +1,65 @@
+name: Проверка и публикация магазина
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test --reporter expanded
+      - run: node --test api/*.test.js
+      - name: Проверка адреса опубликованного API
+        if: github.event_name != 'pull_request'
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+          url = urlsplit(os.environ['API_BASE_URL'])
+          if url.scheme != 'https' or not url.hostname or url.hostname in ('localhost', '127.0.0.1'):
+              raise SystemExit('Задайте HTTPS-адрес API в Settings → Secrets and variables → Actions → Variables → API_BASE_URL')
+          PY
+      - name: Сборка
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          REPOSITORY: ${{ github.event.repository.name }}
+        run: |
+          flutter build web --release --base-href "/${REPOSITORY}/" --dart-define="API_BASE_URL=${API_BASE_URL}"
+          python3 tool/prepare_web.py build/web
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: build/web
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

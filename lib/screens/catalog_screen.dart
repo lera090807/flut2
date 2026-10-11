@@ -531,52 +531,77 @@ class _CatalogScreenState<T extends CatalogEntity>
               ),
             ],
           ),
-          for (final item in result.items)
-            Card(
-              margin: const EdgeInsets.only(top: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (_canEdit)
-                          Checkbox(
-                            value: n.selected.contains(item.id),
-                            onChanged: n.busy
-                                ? null
-                                : (_) => n.toggleSelection(item.id),
-                          ),
-                        Expanded(
-                          child: Text(
-                            item.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns =
+                  MediaQuery.sizeOf(context).width >= compactBreakpoint ? 2 : 1;
+              final cardWidth =
+                  (constraints.maxWidth - 12 * (columns - 1)) / columns;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final item in result.items)
+                    SizedBox(
+                      width: cardWidth,
+                      height: 260,
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  if (_canEdit)
+                                    Checkbox(
+                                      value: n.selected.contains(item.id),
+                                      onChanged: n.busy
+                                          ? null
+                                          : (_) => n.toggleSelection(item.id),
+                                    ),
+                                  Expanded(
+                                    child: Text(
+                                      item.name,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Text(
+                                  widget.summary(item),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(height: 1.7),
+                                ),
+                              ),
+                              const Spacer(),
+                              Row(
+                                children: [
+                                  if (item.isDeleted)
+                                    const Chip(label: Text('Удалено')),
+                                  const Spacer(),
+                                  ..._actions(item),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Text(
-                        widget.summary(item),
-                        style: const TextStyle(height: 1.7),
                       ),
                     ),
-                    Row(
-                      children: [
-                        if (item.isDeleted) const Chip(label: Text('Удалено')),
-                        const Spacer(),
-                        ..._actions(item),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                ],
+              );
+            },
+          ),
         ] else ...[
           const SizedBox(height: 16),
           Card(
@@ -681,7 +706,7 @@ class _CatalogScreenState<T extends CatalogEntity>
                       widget.query.location(widget.path)
                   ? n.state
                   : const Loading(),
-              compact,
+              MediaQuery.sizeOf(context).width < 1200,
             ),
           ],
         ),

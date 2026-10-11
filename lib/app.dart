@@ -8,7 +8,8 @@ import 'core/permissions.dart';
 import 'state/auth_notifier.dart';
 import 'models/app_user.dart';
 import 'screens/auth_screen.dart';
-import 'screens/role_screen.dart';
+import 'screens/role_screen.dart' deferred as roles;
+import 'widgets/deferred_screen.dart';
 import 'widgets/session_watcher.dart';
 import 'core/api_client.dart';
 import 'repositories/api_repository.dart';
@@ -250,19 +251,24 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
         routes: [
           GoRoute(
             path: '/forbidden',
-            builder: (context, _) => ResultMessage(
-              icon: Icons.lock_outline,
-              title: 'Нет доступа',
-              message: 'Эта страница недоступна для вашей роли.',
-              actionLabel: 'В каталог',
-              onAction: () => context.go('/products'),
+            builder: (context, _) => SingleChildScrollView(
+              child: ResultMessage(
+                icon: Icons.lock_outline,
+                title: 'Нет доступа',
+                message: 'Эта страница недоступна для вашей роли.',
+                actionLabel: 'В каталог',
+                onAction: () => context.go('/products'),
+              ),
             ),
           ),
           for (final section in ['account', 'my-orders', 'orders', 'admin'])
             GoRoute(
               path: '/$section',
-              builder: (_, _) =>
-                  RoleScreen(key: ValueKey(section), section: section),
+              builder: (_, _) => DeferredScreen(
+                key: ValueKey(section),
+                load: roles.loadLibrary,
+                builder: (_) => roles.RoleScreen(section: section),
+              ),
             ),
           ..._routes<Product>(
             EntityKind.products,

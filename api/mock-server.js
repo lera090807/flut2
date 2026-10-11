@@ -220,7 +220,8 @@ function createServer({ origin = 'http://localhost:5555', log = true, ttl = 900,
 }
 module.exports = { createServer };
 if (require.main === module) {
-  const port = Number(arg('port',8080)), origin = arg('origin','http://localhost:5555');
+  const port = Number(arg('port',process.env.PORT || 8080)), origin = arg('origin',process.env.ALLOWED_ORIGIN || 'http://localhost:5555');
+  const host = arg('host',process.env.HOST || '127.0.0.1');
   const server = createServer({origin, ttl: Number(arg('ttl',900)), sessionSeconds: Number(arg('session-seconds',3600))});
   server.on('error', error => {
     const report = () => {
@@ -247,5 +248,5 @@ if (require.main === module) {
     probe.setTimeout(2000, () => probe.destroy(new Error('Timeout')));
     probe.on('error', report);
   });
-  server.listen(port,'127.0.0.1', () => console.log(`Cosmetics API: http://localhost:${port}/api; CORS: ${origin}; данные в памяти`));
+  server.listen(port,host, () => console.log(`Cosmetics API: http://localhost:${port}/api; CORS: ${origin}; данные в памяти`));
 }
