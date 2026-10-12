@@ -10,6 +10,7 @@ import '../core/validation_exception.dart';
 import '../models/catalog_entity.dart';
 import '../models/catalog_query.dart';
 import '../models/page_result.dart';
+import '../models/product.dart';
 import '../state/catalog_notifier.dart';
 import '../state/catalog_reference.dart';
 import '../state/auth_notifier.dart';
@@ -20,6 +21,7 @@ import '../widgets/confirm_delete.dart';
 import '../widgets/entity_table.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/result_message.dart';
+import '../widgets/product_image.dart';
 
 class CatalogScreen<T extends CatalogEntity> extends StatefulWidget {
   final CatalogQuery query;
@@ -190,6 +192,23 @@ class _CatalogScreenState<T extends CatalogEntity>
 
   bool get _canEdit =>
       context.read<AuthNotifier?>()?.displayRole != Role.customer;
+  Future<void> _order(Product product) async {
+    try {
+      await context.read<AuthNotifier>().request(
+        '/my-orders',
+        method: 'POST',
+        data: {'productId': product.id},
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Товар добавлен в заказы')));
+      notifier.load();
+    } on ApiException catch (e) {
+      _snack(e.message);
+    }
+  }
+
   bool get _canErase =>
       context.read<AuthNotifier?>() == null ||
       context.read<AuthNotifier>().displayRole == Role.admin;
@@ -497,7 +516,7 @@ class _CatalogScreenState<T extends CatalogEntity>
             actionLabel: 'Сбросить фильтры',
             onAction: () => _navigate(const CatalogQuery()),
           )
-        else if (compact) ...[
+        else if (compact || (widget.products && !_canEdit)) ...[
           const SizedBox(height: 12),
           Row(
             children: [
@@ -545,7 +564,7 @@ class _CatalogScreenState<T extends CatalogEntity>
                   for (final item in result.items)
                     SizedBox(
                       width: cardWidth,
-                      height: 260,
+                      height: item is Product ? 390 : 260,
                       child: Card(
                         margin: EdgeInsets.zero,
                         child: Padding(
@@ -553,6 +572,14 @@ class _CatalogScreenState<T extends CatalogEntity>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (item case Product p) ...[
+                                ProductImage(
+                                  source: p.imageUrl,
+                                  width: double.infinity,
+                                  height: 170,
+                                ),
+                                const SizedBox(height: 12),
+                              ],
                               Row(
                                 children: [
                                   if (_canEdit)
@@ -590,6 +617,18 @@ class _CatalogScreenState<T extends CatalogEntity>
                                   if (item.isDeleted)
                                     const Chip(label: Text('Удалено')),
                                   const Spacer(),
+                                  if (item case Product p
+                                      when !_canEdit && !p.isDeleted)
+                                    FilledButton.tonal(
+                                      onPressed: p.stock > 0
+                                          ? () => _order(p)
+                                          : null,
+                                      child: Text(
+                                        p.stock > 0
+                                            ? 'Заказать'
+                                            : 'Нет в наличии',
+                                      ),
+                                    ),
                                   ..._actions(item),
                                 ],
                               ),

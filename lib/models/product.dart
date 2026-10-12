@@ -15,6 +15,7 @@ class Product implements CatalogEntity {
   final int stock;
   final String volume;
   final String description;
+  final String imageUrl;
   @override
   final DateTime? deletedAt;
   Product({
@@ -29,6 +30,7 @@ class Product implements CatalogEntity {
     required this.stock,
     required this.volume,
     required this.description,
+    this.imageUrl = '',
     this.deletedAt,
   }) : categoryIds = List.unmodifiable(
          (categoryIds ?? (categoryId > 0 ? [categoryId] : <int>[])).toSet(),
@@ -47,6 +49,7 @@ class Product implements CatalogEntity {
     int? stock,
     String? volume,
     String? description,
+    String? imageUrl,
     DateTime? deletedAt,
     bool clearDeletedAt = false,
   }) => Product(
@@ -61,6 +64,7 @@ class Product implements CatalogEntity {
     stock: stock ?? this.stock,
     volume: volume ?? this.volume,
     description: description ?? this.description,
+    imageUrl: imageUrl ?? this.imageUrl,
     deletedAt: clearDeletedAt ? null : deletedAt ?? this.deletedAt,
   );
   @override
@@ -75,6 +79,7 @@ class Product implements CatalogEntity {
     'stock': stock,
     'volume': volume,
     'description': description,
+    'imageUrl': imageUrl,
     'deletedAt': deletedAt?.toIso8601String(),
   };
   factory Product.fromJson(Map<String, dynamic> j) => Product(
@@ -102,6 +107,7 @@ class Product implements CatalogEntity {
     stock: jsonInt(j['stock']),
     volume: jsonString(j['volume']),
     description: jsonString(j['description']),
+    imageUrl: jsonString(j['imageUrl']),
     deletedAt: jsonDate(j['deletedAt']),
   );
 }

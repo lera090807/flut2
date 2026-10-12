@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +18,7 @@ import '../state/editor_notifier.dart';
 import '../state/load_state.dart';
 import '../state/navigation_guard.dart';
 import '../widgets/result_message.dart';
+import '../widgets/product_image.dart';
 
 class EntityFormScreen extends StatelessWidget {
   final String back;
@@ -72,6 +76,9 @@ class _EntityEditorState extends State<EntityEditor> {
     _values.addAll(json);
     if (widget.entity case Product p) {
       _values['price'] = (p.priceKopecks / 100).toStringAsFixed(2);
+      _values['imageUrl'] = p.imageUrl;
+    } else if (editor.kind == EntityKind.products) {
+      _values['imageUrl'] = '';
     }
     final card = jsonMap(json['card']);
     for (final field in _fields) {
@@ -317,6 +324,74 @@ class _EntityEditorState extends State<EntityEditor> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final file = await FilePicker.pickFile(type: FileType.image);
+    if (file == null || !mounted) return;
+    late final List<int> bytes;
+    try {
+      bytes = await file.readAsBytes();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Не удалось прочитать изображение')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    if (bytes.length > 600 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Выберите изображение размером до 600 КБ'),
+        ),
+      );
+      return;
+    }
+    final extension = file.extension?.toLowerCase();
+    final mime = switch (extension) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      _ => 'image/png',
+    };
+    _change('imageUrl', 'data:$mime;base64,${base64Encode(bytes)}');
+  }
+
+  Widget _imageField() {
+    final image = (_values['imageUrl'] as String?) ?? '';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Фотография товара',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        ProductImage(source: image, width: double.infinity, height: 260),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: editor.saving ? null : _pickImage,
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              label: Text(
+                image.isEmpty ? 'Выбрать фотографию' : 'Заменить фотографию',
+              ),
+            ),
+            if (image.isNotEmpty)
+              TextButton.icon(
+                onPressed: editor.saving ? null : () => _change('imageUrl', ''),
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Удалить фотографию'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
   CatalogEntity _entity() {
     final json = <String, dynamic>{
       ...?widget.entity?.toJson(),
@@ -329,6 +404,7 @@ class _EntityEditorState extends State<EntityEditor> {
       }
     }
     if (editor.kind == EntityKind.products) {
+      json['imageUrl'] = _values['imageUrl'] ?? '';
       json['priceKopecks'] = V.kopecks(_controllers['price']!.text);
       json['stock'] = int.parse(_controllers['stock']!.text.trim());
     }
@@ -413,6 +489,7 @@ class _EntityEditorState extends State<EntityEditor> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (editor.kind == EntityKind.products) _imageField(),
                           for (final spec in _fields) ...[
                             if (spec.key == 'card.number') ...[
                               const Divider(height: 32),

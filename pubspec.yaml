@@ -18,6 +18,7 @@ dependencies:
   intl: ^0.20.2
   dio: ^5.11.1
   cupertino_icons: ^2.0.0
+  file_picker: ^13.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../state/auth_notifier.dart';
@@ -42,7 +41,12 @@ class _RoleScreenState extends State<RoleScreen> {
       if (widget.section == 'admin') {
         stats = await auth.request('/admin/stats') as Map<String, dynamic>;
       }
-      if (widget.section == 'my-orders') {
+      if (widget.section == 'my-orders' || widget.section == 'account') {
+        if (widget.section == 'account') {
+          final orderData =
+              await auth.request('/my-orders') as Map<String, dynamic>;
+          data['items'] = orderData['items'];
+        }
         products =
             (await auth.request('/products?size=100')
                     as Map<String, dynamic>)['items']
@@ -90,6 +94,58 @@ class _RoleScreenState extends State<RoleScreen> {
     }
   }
 
+  Widget _orderCard(dynamic order, {required bool own}) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Заказ №${order['id']} · ${order['productName']}',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 6),
+          Text('Статус: ${status(order['status'])}'),
+          if (!own) Text('Покупатель: ${order['customerName']}'),
+          Text(
+            'Забрать до: ${DateTime.parse(order['pickupUntil']).toLocal().toString().substring(0, 16)}',
+          ),
+          const SizedBox(height: 12),
+          if (own &&
+              order['extended'] != true &&
+              ['new', 'ready'].contains(order['status']))
+            OutlinedButton(
+              onPressed: _busy
+                  ? null
+                  : () =>
+                        _action('/my-orders/${order['id']}/extend', 'POST', {}),
+              child: const Text('Продлить на 2 дня'),
+            ),
+          if (!own)
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final next
+                    in (order['status'] == 'new'
+                        ? ['ready', 'cancelled']
+                        : order['status'] == 'ready'
+                        ? ['completed', 'cancelled']
+                        : <String>[]))
+                  OutlinedButton(
+                    onPressed: _busy
+                        ? null
+                        : () => _action('/orders/${order['id']}', 'PUT', {
+                            'status': next,
+                          }),
+                    child: Text(status(next)),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    ),
+  );
+
   String status(dynamic value) =>
       const {
         'new': 'Новый',
@@ -132,15 +188,27 @@ class _RoleScreenState extends State<RoleScreen> {
                     const SizedBox(height: 12),
                     Text(auth.user!.email),
                     Text('Ваших заказов: ${_data!['orders']}'),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => context.go('/my-orders'),
-                      child: const Text('Открыть мои заказы'),
-                    ),
+                    const SizedBox(height: 8),
+                    const Text('История и статусы заказов находятся ниже.'),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            Text(
+              'Мои заказы',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 12),
+            if ((_data!['items'] as List).isEmpty)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('Заказов пока нет'),
+                ),
+              )
+            else
+              for (final order in _data!['items']) _orderCard(order, own: true),
           ] else ...[
             if (widget.section == 'admin') ...[
               Wrap(
@@ -266,62 +334,7 @@ class _RoleScreenState extends State<RoleScreen> {
                   child: Text('Заказов пока нет'),
                 ),
               for (final order in _data!['items'])
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Заказ №${order['id']} · ${order['productName']}',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        Text('Статус: ${status(order['status'])}'),
-                        if (widget.section == 'orders')
-                          Text('Покупатель: ${order['customerName']}'),
-                        Text(
-                          'Забрать до: ${DateTime.parse(order['pickupUntil']).toLocal().toString().substring(0, 16)}',
-                        ),
-                        const SizedBox(height: 12),
-                        if (widget.section == 'my-orders' &&
-                            order['extended'] != true &&
-                            ['new', 'ready'].contains(order['status']))
-                          OutlinedButton(
-                            onPressed: _busy
-                                ? null
-                                : () => _action(
-                                    '/my-orders/${order['id']}/extend',
-                                    'POST',
-                                    {},
-                                  ),
-                            child: const Text('Продлить на 2 дня'),
-                          ),
-                        if (widget.section == 'orders')
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              for (final next
-                                  in (order['status'] == 'new'
-                                      ? ['ready', 'cancelled']
-                                      : order['status'] == 'ready'
-                                      ? ['completed', 'cancelled']
-                                      : <String>[]))
-                                OutlinedButton(
-                                  onPressed: _busy
-                                      ? null
-                                      : () => _action(
-                                          '/orders/${order['id']}',
-                                          'PUT',
-                                          {'status': next},
-                                        ),
-                                  child: Text(status(next)),
-                                ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
+                _orderCard(order, own: widget.section == 'my-orders'),
             ],
           ],
         ],

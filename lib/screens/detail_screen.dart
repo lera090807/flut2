@@ -18,6 +18,7 @@ import '../state/auth_notifier.dart';
 import '../models/app_user.dart';
 import '../state/load_state.dart';
 import '../widgets/result_message.dart';
+import '../widgets/product_image.dart';
 
 class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
   final String back;
@@ -116,11 +117,18 @@ class DetailScreen<T extends CatalogEntity> extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              item is Product ? Icons.spa_outlined : Icons.local_offer_outlined,
-              size: 48,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            if (item case Product p)
+              ProductImage(
+                source: p.imageUrl,
+                width: double.infinity,
+                height: 340,
+              )
+            else
+              Icon(
+                Icons.local_offer_outlined,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             const SizedBox(height: 20),
             Text(item.name, style: Theme.of(context).textTheme.headlineMedium),
             if (item.isDeleted)

@@ -20,7 +20,7 @@ void main() {
     await tester.pumpWidget(
       CosmeticsApp(
         useApi: false,
-        initialLocation: location,
+        initialLocation: location ?? '/products',
         products: products ?? InMemoryProductRepository(latency: Duration.zero),
         brands: InMemoryBrandRepository(latency: Duration.zero),
       ),

@@ -8,6 +8,7 @@ import 'core/permissions.dart';
 import 'state/auth_notifier.dart';
 import 'models/app_user.dart';
 import 'screens/auth_screen.dart';
+import 'screens/home_screen.dart';
 import 'screens/role_screen.dart' deferred as roles;
 import 'widgets/deferred_screen.dart';
 import 'widgets/session_watcher.dart';
@@ -245,10 +246,11 @@ class _CosmeticsAppState extends State<CosmeticsApp> {
         ),
       ),
       GoRoute(path: '/session', builder: (_, _) => const SessionScreen()),
-      GoRoute(path: '/', redirect: (_, _) => '/products'),
+      GoRoute(path: '/', redirect: (_, _) => '/home'),
       ShellRoute(
         builder: (_, _, child) => AppShell(child: child),
         routes: [
+          GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
           GoRoute(
             path: '/forbidden',
             builder: (context, _) => SingleChildScrollView(

@@ -51,7 +51,7 @@ function createServer({ origin = 'http://localhost:5555', log = true, ttl = 900,
     };
     text('name');
     if (k === 'products') {
-      code('sku'); text('volume', 2, 40); text('description', 2, 1000);
+      code('sku'); text('volume', 2, 40); text('description', 2, 1000); text('imageUrl', 0, 900000);
       integer('priceKopecks', 1, 100000000, input, e, 'price'); integer('stock', 0, 100000);
       for (const [key, kind] of [['brandId','brands'], ['supplierId','suppliers']]) {
         e[key] = input[key]; if (!exists(kind, e[key])) errors[key] = 'Выберите действующую запись';

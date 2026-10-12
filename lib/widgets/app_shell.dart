@@ -18,6 +18,7 @@ class AppShell extends StatelessWidget {
         database = context.watch<ShopDatabase?>();
     final role = auth?.displayRole;
     final entries = <({String path, String title, IconData icon})>[
+      (path: '/home', title: 'Главная', icon: Icons.home_outlined),
       for (final k in EntityKind.values)
         if (role != Role.customer ||
             [
@@ -36,14 +37,8 @@ class AppShell extends StatelessWidget {
               _ => Icons.people_outline,
             },
           ),
-      if (role == Role.customer) ...[
-        (path: '/account', title: 'Личный кабинет', icon: Icons.person_outline),
-        (
-          path: '/my-orders',
-          title: 'Мои заказы',
-          icon: Icons.shopping_bag_outlined,
-        ),
-      ],
+      if (role == Role.customer)
+        (path: '/account', title: 'Профиль', icon: Icons.person_outline),
       if (role == Role.staff)
         (
           path: '/orders',
